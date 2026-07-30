@@ -1,0 +1,29 @@
+name: ScreenCamRecorder
+options:
+  bundleIdPrefix: com.yuriivoevodin
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+
+targets:
+  ScreenCamRecorder:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: ScreenCamRecorder
+        excludes:
+          - "Info.plist"
+          - "ScreenCamRecorder.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yuriivoevodin.ScreenCamRecorder
+        INFOPLIST_FILE: ScreenCamRecorder/Info.plist
+        CODE_SIGN_ENTITLEMENTS: ScreenCamRecorder/ScreenCamRecorder.entitlements
+        GENERATE_INFOPLIST_FILE: false
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        ENABLE_HARDENED_RUNTIME: true
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
