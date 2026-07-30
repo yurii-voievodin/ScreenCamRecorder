@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @StateObject private var settings = RecordingSettings()
@@ -7,6 +8,7 @@ struct ContentView: View {
 
     @State private var isRecording = false
     @State private var statusText = "Готово до запису"
+    @State private var lastRecordingURL: URL?
 
     var body: some View {
         VStack(spacing: 20) {
@@ -54,6 +56,15 @@ struct ContentView: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(isRecording ? .red : .accentColor)
+
+            // MARK: - Експорт (Етап 7)
+            if let lastRecordingURL {
+                Button {
+                    NSWorkspace.shared.activateFileViewerSelecting([lastRecordingURL])
+                } label: {
+                    Label("Показати у Finder", systemImage: "folder")
+                }
+            }
         }
         .padding(24)
         .frame(width: 360)
@@ -76,12 +87,14 @@ struct ContentView: View {
                         cameraURL: cameraURL,
                         settings: settings
                     )
+                    lastRecordingURL = outputURL
                     statusText = outputURL != nil ? "Готово! Файл збережено." : "Помилка склеювання."
                 } else {
                     statusText = "Помилка запису."
                 }
                 isRecording = false
             } else {
+                lastRecordingURL = nil
                 statusText = "Йде запис…"
                 // Синхронний старт обох потоків (Етап 4)
                 async let screenStart: () = screenRecorder.start()
