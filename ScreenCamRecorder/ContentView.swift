@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var isRecording = false
     @State private var statusText = "Готово до запису"
     @State private var lastRecordingURL: URL?
+    @State private var previewWindowController: CameraPreviewWindowController?
 
     var body: some View {
         VStack(spacing: 20) {
@@ -32,17 +33,20 @@ struct ContentView: View {
                             Text(position.title).tag(position)
                         }
                     }
+                    .disabled(isRecording)
 
                     HStack {
                         Text("Розмір")
                         Slider(value: $settings.overlaySize, in: 0.1...0.4)
                     }
+                    .disabled(isRecording)
 
                     Picker("Форма", selection: $settings.overlayShape) {
                         Text("Круг").tag(OverlayShape.circle)
                         Text("Прямокутник").tag(OverlayShape.rectangle)
                     }
                     .pickerStyle(.segmented)
+                    .disabled(isRecording)
                 }
                 .padding(.top, 4)
             }
@@ -67,12 +71,16 @@ struct ContentView: View {
         .frame(width: 360)
         .task {
             await cameraRecorder.refreshAvailableCameras()
+            if previewWindowController == nil {
+                previewWindowController = CameraPreviewWindowController(session: cameraRecorder.session)
+            }
         }
     }
 
     private func toggleRecording() {
         Task {
             if isRecording {
+                previewWindowController?.hide()
                 statusText = "Обробка та склеювання відео…"
                 let screenURL = await screenRecorder.stop()
                 let cameraURL = await cameraRecorder.stop()
@@ -100,8 +108,39 @@ struct ContentView: View {
                 async let cameraStart: () = cameraRecorder.start(deviceID: settings.selectedCameraID)
                 _ = await (screenStart, cameraStart)
                 isRecording = true
+                showPreviewWindow()
+                if let previewWindowController {
+                    await screenRecorder.excludeWindow(numbered: previewWindowController.windowNumber)
+                }
             }
         }
+    }
+
+    private func showPreviewWindow() {
+        guard let previewWindowController, let screen = recordedScreen else { return }
+        let canvasSize = screen.frame.size
+        let cameraSize = cameraRecorder.activeVideoDimensions ?? .zero
+        let bubble = OverlayGeometry.frame(
+            canvasSize: canvasSize,
+            cameraSize: cameraSize,
+            position: settings.overlayPosition,
+            sizeFraction: settings.overlaySize,
+            shape: settings.overlayShape
+        )
+        let screenFrame = CGRect(
+            x: screen.frame.origin.x + bubble.origin.x,
+            y: screen.frame.origin.y + bubble.origin.y,
+            width: bubble.width,
+            height: bubble.height
+        )
+        previewWindowController.show(frame: screenFrame, shape: settings.overlayShape)
+    }
+
+    private var recordedScreen: NSScreen? {
+        guard let recordedDisplayID = screenRecorder.recordedDisplayID else { return NSScreen.main }
+        return NSScreen.screens.first { screen in
+            (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == recordedDisplayID
+        } ?? NSScreen.main
     }
 }
 

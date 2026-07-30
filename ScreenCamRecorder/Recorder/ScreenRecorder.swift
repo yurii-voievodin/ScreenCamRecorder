@@ -6,12 +6,15 @@ import AVFoundation
 final class ScreenRecorder: NSObject, ObservableObject {
 
     private var stream: SCStream?
+    private var currentDisplay: SCDisplay?
     private var assetWriter: AVAssetWriter?
     private var videoInput: AVAssetWriterInput?
     private var outputURL: URL?
     private var sessionStarted = false
 
     private(set) var startHostTime: CFTimeInterval?
+
+    var recordedDisplayID: CGDirectDisplayID? { currentDisplay?.displayID }
 
     private let outputQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.screenOutput")
 
@@ -68,10 +71,36 @@ final class ScreenRecorder: NSObject, ObservableObject {
             self.sessionStarted = false
             self.startHostTime = nil
             self.stream = stream
+            self.currentDisplay = display
 
             try await stream.startCapture()
         } catch {
             print("Failed to start screen capture: \(error)")
+        }
+    }
+
+    func excludeWindow(numbered windowNumber: Int) async {
+        guard let stream, let currentDisplay else { return }
+        do {
+            var matchedWindow: SCWindow?
+            for attempt in 0..<5 {
+                let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+                if let window = content.windows.first(where: { Int($0.windowID) == windowNumber }) {
+                    matchedWindow = window
+                    break
+                }
+                if attempt < 4 {
+                    try await Task.sleep(nanoseconds: 100_000_000)
+                }
+            }
+            guard let matchedWindow else {
+                print("ScreenRecorder: could not find preview window (id=\(windowNumber)) to exclude from capture")
+                return
+            }
+            let filter = SCContentFilter(display: currentDisplay, excludingWindows: [matchedWindow])
+            try await stream.updateContentFilter(filter)
+        } catch {
+            print("ScreenRecorder: failed to exclude preview window from capture: \(error)")
         }
     }
 
@@ -84,6 +113,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             }
         }
         stream = nil
+        currentDisplay = nil
 
         videoInput?.markAsFinished()
         await assetWriter?.finishWriting()

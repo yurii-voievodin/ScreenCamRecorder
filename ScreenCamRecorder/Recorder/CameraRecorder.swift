@@ -6,7 +6,7 @@ final class CameraRecorder: NSObject, ObservableObject {
 
     @Published var availableCameras: [AVCaptureDevice] = []
 
-    private let session = AVCaptureSession()
+    let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.cameraSession")
     private var movieOutput: AVCaptureMovieFileOutput?
     private var currentInput: AVCaptureDeviceInput?
@@ -15,6 +15,8 @@ final class CameraRecorder: NSObject, ObservableObject {
     private var recordingFinished: CheckedContinuation<Void, Never>?
 
     private(set) var startHostTime: CFTimeInterval?
+
+    private(set) var activeVideoDimensions: CGSize?
 
     func refreshAvailableCameras() async {
         let discovery = AVCaptureDevice.DiscoverySession(
@@ -116,6 +118,9 @@ final class CameraRecorder: NSObject, ObservableObject {
                 }
             }
             session.commitConfiguration()
+
+            let dimensions = CMVideoFormatDescriptionGetDimensions(device.activeFormat.formatDescription)
+            activeVideoDimensions = CGSize(width: Int(dimensions.width), height: Int(dimensions.height))
 
             guard let movieOutput else {
                 print("CameraRecorder: movieOutput is nil after configuration, aborting start")

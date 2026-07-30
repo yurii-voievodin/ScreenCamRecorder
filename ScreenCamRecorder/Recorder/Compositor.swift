@@ -192,7 +192,6 @@ private final class OverlayCompositor: NSObject, AVVideoCompositing {
         sizeFraction: Double,
         shape: OverlayShape
     ) -> CIImage {
-        let margin: CGFloat = 24
         let overlayWidth = renderSize.width * CGFloat(sizeFraction)
         let cameraExtent = cameraImage.extent
         let scale = overlayWidth / cameraExtent.width
@@ -231,17 +230,7 @@ private final class OverlayCompositor: NSObject, AVVideoCompositing {
             break
         }
 
-        let origin: CGPoint
-        switch position {
-        case .topLeft:
-            origin = CGPoint(x: margin, y: renderSize.height - scaledExtent.height - margin)
-        case .topRight:
-            origin = CGPoint(x: renderSize.width - scaledExtent.width - margin, y: renderSize.height - scaledExtent.height - margin)
-        case .bottomLeft:
-            origin = CGPoint(x: margin, y: margin)
-        case .bottomRight:
-            origin = CGPoint(x: renderSize.width - scaledExtent.width - margin, y: margin)
-        }
+        let origin = OverlayGeometry.origin(for: scaledExtent.size, canvasSize: renderSize, position: position)
 
         let translation = CGAffineTransform(
             translationX: origin.x - scaledExtent.origin.x,
