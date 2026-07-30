@@ -39,7 +39,16 @@ final class CameraRecorder: NSObject, ObservableObject {
 
     /// Старт запису з обраної камери. Викликається паралельно з ScreenRecorder.start() (Етап 4).
     func start(deviceID: String) async {
-        guard await requestPermissionIfNeeded() else { return }
+        guard await requestPermissionIfNeeded() else {
+            print("CameraRecorder: camera permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .video).rawValue))")
+            return
+        }
+
+        if availableCameras.isEmpty {
+            // AVCaptureDevice.DiscoverySession іноді порожній одразу після запуску
+            // (CoreMediaIO ще не встиг зареєструвати пристрої) — пробуємо ще раз.
+            await refreshAvailableCameras()
+        }
 
         guard let device = availableCameras.first(where: { $0.uniqueID == deviceID }) ?? availableCameras.first else {
             print("No camera device available")
@@ -56,17 +65,24 @@ final class CameraRecorder: NSObject, ObservableObject {
             if session.canAddInput(input) {
                 session.addInput(input)
                 currentInput = input
+            } else {
+                print("CameraRecorder: cannot add input for device \(device.localizedName)")
             }
             if movieOutput == nil {
                 let output = AVCaptureMovieFileOutput()
                 if session.canAddOutput(output) {
                     session.addOutput(output)
                     movieOutput = output
+                } else {
+                    print("CameraRecorder: cannot add AVCaptureMovieFileOutput to session")
                 }
             }
             session.commitConfiguration()
 
-            guard let movieOutput else { return }
+            guard let movieOutput else {
+                print("CameraRecorder: movieOutput is nil after configuration, aborting start")
+                return
+            }
 
             let session = self.session
             await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
