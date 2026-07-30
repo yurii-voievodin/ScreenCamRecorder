@@ -16,6 +16,7 @@ enum Compositor {
         cameraURL: URL,
         screenStartTime: CFTimeInterval?,
         cameraStartTime: CFTimeInterval?,
+        edgeInsets: OverlayEdgeInsets,
         settings: RecordingSettings
     ) async throws -> URL {
 
@@ -63,7 +64,8 @@ enum Compositor {
             renderSize: renderSize,
             position: settings.overlayPosition,
             sizeFraction: settings.overlaySize,
-            shape: settings.overlayShape
+            shape: settings.overlayShape,
+            edgeInsets: edgeInsets
         )
         videoComposition.instructions = [instruction]
         videoComposition.customVideoCompositorClass = OverlayCompositor.self
@@ -117,6 +119,7 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
     let position: OverlayPosition
     let sizeFraction: Double
     let shape: OverlayShape
+    let edgeInsets: OverlayEdgeInsets
 
     init(
         timeRange: CMTimeRange,
@@ -125,7 +128,8 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
         renderSize: CGSize,
         position: OverlayPosition,
         sizeFraction: Double,
-        shape: OverlayShape
+        shape: OverlayShape,
+        edgeInsets: OverlayEdgeInsets
     ) {
         self.timeRange = timeRange
         self.screenTrackID = screenTrackID
@@ -134,6 +138,7 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
         self.position = position
         self.sizeFraction = sizeFraction
         self.shape = shape
+        self.edgeInsets = edgeInsets
         self.requiredSourceTrackIDs = [NSNumber(value: screenTrackID), NSNumber(value: cameraTrackID)]
         super.init()
     }
@@ -172,7 +177,8 @@ private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked 
             renderSize: instruction.renderSize,
             position: instruction.position,
             sizeFraction: instruction.sizeFraction,
-            shape: instruction.shape
+            shape: instruction.shape,
+            edgeInsets: instruction.edgeInsets
         )
         let composited = overlay.composited(over: screenImage)
 
@@ -190,7 +196,8 @@ private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked 
         renderSize: CGSize,
         position: OverlayPosition,
         sizeFraction: Double,
-        shape: OverlayShape
+        shape: OverlayShape,
+        edgeInsets: OverlayEdgeInsets
     ) -> CIImage {
         let overlayWidth = renderSize.width * CGFloat(sizeFraction)
         let cameraExtent = cameraImage.extent
@@ -227,10 +234,23 @@ private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked 
             }
 
         case .rectangle:
-            break
+            let radius = OverlayGeometry.rectangleCornerRadius(for: scaledExtent.size)
+            let roundedRect = CIFilter.roundedRectangleGenerator()
+            roundedRect.extent = scaledExtent
+            roundedRect.radius = Float(radius)
+            roundedRect.color = CIColor(red: 1, green: 1, blue: 1, alpha: 1)
+
+            if let mask = roundedRect.outputImage?.cropped(to: scaledExtent) {
+                let blend = CIFilter.blendWithMask()
+                blend.inputImage = scaled
+                blend.maskImage = mask
+                if let masked = blend.outputImage {
+                    scaled = masked
+                }
+            }
         }
 
-        let origin = OverlayGeometry.origin(for: scaledExtent.size, canvasSize: renderSize, position: position)
+        let origin = OverlayGeometry.origin(for: scaledExtent.size, canvasSize: renderSize, position: position, edgeInsets: edgeInsets)
 
         let translation = CGAffineTransform(
             translationX: origin.x - scaledExtent.origin.x,

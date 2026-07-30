@@ -51,10 +51,11 @@ final class CameraPreviewWindowController: NSWindowController {
         switch shape {
         case .circle:
             maskLayer.path = CGPath(ellipseIn: previewLayer.bounds, transform: nil)
-            previewLayer.mask = maskLayer
         case .rectangle:
-            previewLayer.mask = nil
+            let radius = OverlayGeometry.rectangleCornerRadius(for: previewLayer.bounds.size)
+            maskLayer.path = CGPath(roundedRect: previewLayer.bounds, cornerWidth: radius, cornerHeight: radius, transform: nil)
         }
+        previewLayer.mask = maskLayer
         CATransaction.commit()
 
         window.orderFrontRegardless()

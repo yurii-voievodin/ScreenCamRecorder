@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var statusText = "Готово до запису"
     @State private var lastRecordingURL: URL?
     @State private var previewWindowController: CameraPreviewWindowController?
+    @State private var currentEdgeInsets = OverlayEdgeInsets.zero
 
     var body: some View {
         VStack(spacing: 20) {
@@ -74,22 +75,31 @@ struct ContentView: View {
         .frame(width: 360)
         .task {
             await cameraRecorder.refreshAvailableCameras()
-            if settings.selectedCameraID.isEmpty {
-                settings.selectedCameraID = cameraRecorder.availableCameras.first?.uniqueID ?? ""
-            }
             if previewWindowController == nil {
                 previewWindowController = CameraPreviewWindowController(session: cameraRecorder.session)
             }
+            if settings.selectedCameraID.isEmpty {
+                settings.selectedCameraID = cameraRecorder.availableCameras.first?.uniqueID ?? ""
+            }
         }
+        .onChange(of: settings.selectedCameraID) { newValue in
+            guard !newValue.isEmpty else { return }
+            Task {
+                await cameraRecorder.selectCamera(deviceID: newValue)
+                showPreviewWindow()
+            }
+        }
+        .onChange(of: settings.overlayPosition) { _ in showPreviewWindow() }
+        .onChange(of: settings.overlaySize) { _ in showPreviewWindow() }
+        .onChange(of: settings.overlayShape) { _ in showPreviewWindow() }
     }
 
     private func toggleRecording() {
         Task {
             if isRecording {
-                previewWindowController?.hide()
                 statusText = "Обробка та склеювання відео…"
                 let screenURL = await screenRecorder.stop()
-                let cameraURL = await cameraRecorder.stop()
+                let cameraURL = await cameraRecorder.stopRecording()
                 let screenStartTime = screenRecorder.startHostTime
                 let cameraStartTime = cameraRecorder.startHostTime
 
@@ -99,6 +109,7 @@ struct ContentView: View {
                         cameraURL: cameraURL,
                         screenStartTime: screenStartTime,
                         cameraStartTime: cameraStartTime,
+                        edgeInsets: currentEdgeInsets,
                         settings: settings
                     )
                     lastRecordingURL = outputURL
@@ -111,7 +122,7 @@ struct ContentView: View {
                 lastRecordingURL = nil
                 statusText = "Йде запис…"
                 async let screenStart: () = screenRecorder.start()
-                async let cameraStart: () = cameraRecorder.start(deviceID: settings.selectedCameraID)
+                async let cameraStart: () = cameraRecorder.startRecording()
                 _ = await (screenStart, cameraStart)
                 isRecording = true
                 showPreviewWindow()
@@ -124,6 +135,7 @@ struct ContentView: View {
 
     private func showPreviewWindow() {
         guard let previewWindowController, let screen = recordedScreen else { return }
+        currentEdgeInsets = dockAvoidingInsets(for: screen)
         let canvasSize = screen.frame.size
         let cameraSize = cameraRecorder.activeVideoDimensions ?? .zero
         let bubble = OverlayGeometry.frame(
@@ -131,7 +143,8 @@ struct ContentView: View {
             cameraSize: cameraSize,
             position: settings.overlayPosition,
             sizeFraction: settings.overlaySize,
-            shape: settings.overlayShape
+            shape: settings.overlayShape,
+            edgeInsets: currentEdgeInsets
         )
         let screenFrame = CGRect(
             x: screen.frame.origin.x + bubble.origin.x,
@@ -140,6 +153,17 @@ struct ContentView: View {
             height: bubble.height
         )
         previewWindowController.show(frame: screenFrame, shape: settings.overlayShape)
+    }
+
+    private func dockAvoidingInsets(for screen: NSScreen) -> OverlayEdgeInsets {
+        let full = screen.frame
+        let visible = screen.visibleFrame
+        return OverlayEdgeInsets(
+            top: full.maxY - visible.maxY,
+            left: visible.minX - full.minX,
+            bottom: visible.minY - full.minY,
+            right: full.maxX - visible.maxX
+        )
     }
 
     private var recordedScreen: NSScreen? {

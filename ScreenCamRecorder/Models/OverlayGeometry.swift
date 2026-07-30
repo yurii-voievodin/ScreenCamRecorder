@@ -1,17 +1,32 @@
 import CoreGraphics
 
+struct OverlayEdgeInsets {
+    var top: CGFloat = 0
+    var left: CGFloat = 0
+    var bottom: CGFloat = 0
+    var right: CGFloat = 0
+
+    static let zero = OverlayEdgeInsets()
+}
+
 enum OverlayGeometry {
     static let margin: CGFloat = 24
+    static let rectangleCornerRadiusFraction: CGFloat = 0.16
+
+    static func rectangleCornerRadius(for size: CGSize) -> CGFloat {
+        min(size.width, size.height) * rectangleCornerRadiusFraction
+    }
 
     static func frame(
         canvasSize: CGSize,
         cameraSize: CGSize,
         position: OverlayPosition,
         sizeFraction: Double,
-        shape: OverlayShape
+        shape: OverlayShape,
+        edgeInsets: OverlayEdgeInsets
     ) -> CGRect {
         let size = overlaySize(canvasWidth: canvasSize.width, cameraSize: cameraSize, sizeFraction: sizeFraction, shape: shape)
-        return CGRect(origin: origin(for: size, canvasSize: canvasSize, position: position), size: size)
+        return CGRect(origin: origin(for: size, canvasSize: canvasSize, position: position, edgeInsets: edgeInsets), size: size)
     }
 
     static func overlaySize(canvasWidth: CGFloat, cameraSize: CGSize, sizeFraction: Double, shape: OverlayShape) -> CGSize {
@@ -29,16 +44,16 @@ enum OverlayGeometry {
         return size
     }
 
-    static func origin(for size: CGSize, canvasSize: CGSize, position: OverlayPosition) -> CGPoint {
+    static func origin(for size: CGSize, canvasSize: CGSize, position: OverlayPosition, edgeInsets: OverlayEdgeInsets) -> CGPoint {
         switch position {
         case .topLeft:
-            return CGPoint(x: margin, y: canvasSize.height - size.height - margin)
+            return CGPoint(x: margin + edgeInsets.left, y: canvasSize.height - size.height - margin - edgeInsets.top)
         case .topRight:
-            return CGPoint(x: canvasSize.width - size.width - margin, y: canvasSize.height - size.height - margin)
+            return CGPoint(x: canvasSize.width - size.width - margin - edgeInsets.right, y: canvasSize.height - size.height - margin - edgeInsets.top)
         case .bottomLeft:
-            return CGPoint(x: margin, y: margin)
+            return CGPoint(x: margin + edgeInsets.left, y: margin + edgeInsets.bottom)
         case .bottomRight:
-            return CGPoint(x: canvasSize.width - size.width - margin, y: margin)
+            return CGPoint(x: canvasSize.width - size.width - margin - edgeInsets.right, y: margin + edgeInsets.bottom)
         }
     }
 }
