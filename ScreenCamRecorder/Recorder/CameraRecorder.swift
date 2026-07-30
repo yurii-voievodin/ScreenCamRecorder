@@ -1,16 +1,18 @@
 import Foundation
-import AVFoundation
+@preconcurrency import AVFoundation
 
 /// Етап 3: Запис з камери через AVCaptureSession.
-/// TODO: реалізувати AVCaptureSession, вибір пристрою, запис у окремий .mov файл.
 @MainActor
 final class CameraRecorder: NSObject, ObservableObject {
 
     @Published var availableCameras: [AVCaptureDevice] = []
 
     private let session = AVCaptureSession()
+    private let sessionQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.cameraSession")
     private var movieOutput: AVCaptureMovieFileOutput?
+    private var currentInput: AVCaptureDeviceInput?
     private var outputURL: URL?
+    private var recordingFinished: CheckedContinuation<Void, Never>?
 
     /// Оновлює список доступних камер для Picker в ContentView.
     func refreshAvailableCameras() async {
@@ -39,20 +41,88 @@ final class CameraRecorder: NSObject, ObservableObject {
     func start(deviceID: String) async {
         guard await requestPermissionIfNeeded() else { return }
 
-        // TODO:
-        // 1. Знайти AVCaptureDevice за deviceID (або перший доступний)
-        // 2. session.addInput(AVCaptureDeviceInput(device:))
-        // 3. movieOutput = AVCaptureMovieFileOutput(); session.addOutput(movieOutput)
-        // 4. session.startRunning()
-        // 5. movieOutput.startRecording(to: tmpURL, recordingDelegate: self)
+        guard let device = availableCameras.first(where: { $0.uniqueID == deviceID }) ?? availableCameras.first else {
+            print("No camera device available")
+            return
+        }
 
-        outputURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("camera-\(UUID().uuidString).mov")
+        do {
+            let input = try AVCaptureDeviceInput(device: device)
+
+            session.beginConfiguration()
+            if let currentInput {
+                session.removeInput(currentInput)
+            }
+            if session.canAddInput(input) {
+                session.addInput(input)
+                currentInput = input
+            }
+            if movieOutput == nil {
+                let output = AVCaptureMovieFileOutput()
+                if session.canAddOutput(output) {
+                    session.addOutput(output)
+                    movieOutput = output
+                }
+            }
+            session.commitConfiguration()
+
+            guard let movieOutput else { return }
+
+            let session = self.session
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                sessionQueue.async {
+                    if !session.isRunning {
+                        session.startRunning()
+                    }
+                    continuation.resume()
+                }
+            }
+
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("camera-\(UUID().uuidString).mov")
+            outputURL = url
+            movieOutput.startRecording(to: url, recordingDelegate: self)
+        } catch {
+            print("Failed to start camera capture: \(error)")
+        }
     }
 
     /// Зупиняє запис і повертає URL готового файлу.
     func stop() async -> URL? {
-        // TODO: movieOutput?.stopRecording(), session.stopRunning()
+        if let movieOutput, movieOutput.isRecording {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                recordingFinished = continuation
+                movieOutput.stopRecording()
+            }
+        }
+
+        let session = self.session
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            sessionQueue.async {
+                if session.isRunning {
+                    session.stopRunning()
+                }
+                continuation.resume()
+            }
+        }
+
         return outputURL
+    }
+}
+
+extension CameraRecorder: AVCaptureFileOutputRecordingDelegate {
+    nonisolated func fileOutput(
+        _ output: AVCaptureFileOutput,
+        didFinishRecordingTo outputFileURL: URL,
+        from connections: [AVCaptureConnection],
+        error: Error?
+    ) {
+        if let error {
+            print("Camera recording finished with error: \(error)")
+        }
+        Task { @MainActor in
+            recordingFinished?.resume()
+            recordingFinished = nil
+        }
     }
 }
