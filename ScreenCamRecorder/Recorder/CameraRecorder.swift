@@ -1,7 +1,6 @@
 import Foundation
 @preconcurrency import AVFoundation
 
-/// Етап 3: Запис з камери через AVCaptureSession.
 @MainActor
 final class CameraRecorder: NSObject, ObservableObject {
 
@@ -15,7 +14,8 @@ final class CameraRecorder: NSObject, ObservableObject {
     private var outputURL: URL?
     private var recordingFinished: CheckedContinuation<Void, Never>?
 
-    /// Оновлює список доступних камер для Picker в ContentView.
+    private(set) var startHostTime: CFTimeInterval?
+
     func refreshAvailableCameras() async {
         let discovery = AVCaptureDevice.DiscoverySession(
             deviceTypes: [.builtInWideAngleCamera],
@@ -25,7 +25,6 @@ final class CameraRecorder: NSObject, ObservableObject {
         availableCameras = discovery.devices
     }
 
-    /// Запитує дозвіл на камеру.
     func requestPermissionIfNeeded() async -> Bool {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
         switch status {
@@ -38,7 +37,6 @@ final class CameraRecorder: NSObject, ObservableObject {
         }
     }
 
-    /// Запитує дозвіл на мікрофон. Звук не обов'язковий — відмова не блокує запис відео.
     private func requestMicrophonePermissionIfNeeded() async -> Bool {
         let status = AVCaptureDevice.authorizationStatus(for: .audio)
         switch status {
@@ -55,7 +53,6 @@ final class CameraRecorder: NSObject, ObservableObject {
         }
     }
 
-    /// Старт запису з обраної камери. Викликається паралельно з ScreenRecorder.start() (Етап 4).
     func start(deviceID: String) async {
         guard await requestPermissionIfNeeded() else {
             print("CameraRecorder: camera permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .video).rawValue))")
@@ -63,8 +60,6 @@ final class CameraRecorder: NSObject, ObservableObject {
         }
 
         if availableCameras.isEmpty {
-            // AVCaptureDevice.DiscoverySession іноді порожній одразу після запуску
-            // (CoreMediaIO ще не встиг зареєструвати пристрої) — пробуємо ще раз.
             await refreshAvailableCameras()
         }
 
@@ -140,13 +135,13 @@ final class CameraRecorder: NSObject, ObservableObject {
             let url = FileManager.default.temporaryDirectory
                 .appendingPathComponent("camera-\(UUID().uuidString).mov")
             outputURL = url
+            startHostTime = nil
             movieOutput.startRecording(to: url, recordingDelegate: self)
         } catch {
             print("Failed to start camera capture: \(error)")
         }
     }
 
-    /// Зупиняє запис і повертає URL готового файлу.
     func stop() async -> URL? {
         if let movieOutput, movieOutput.isRecording {
             await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
@@ -170,6 +165,16 @@ final class CameraRecorder: NSObject, ObservableObject {
 }
 
 extension CameraRecorder: AVCaptureFileOutputRecordingDelegate {
+    nonisolated func fileOutput(
+        _ output: AVCaptureFileOutput,
+        didStartRecordingTo fileURL: URL,
+        from connections: [AVCaptureConnection]
+    ) {
+        Task { @MainActor in
+            self.startHostTime = ProcessInfo.processInfo.systemUptime
+        }
+    }
+
     nonisolated func fileOutput(
         _ output: AVCaptureFileOutput,
         didFinishRecordingTo outputFileURL: URL,

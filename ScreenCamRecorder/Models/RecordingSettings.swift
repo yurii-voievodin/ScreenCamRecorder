@@ -20,12 +20,10 @@ enum OverlayShape {
     case rectangle
 }
 
-/// Налаштування запису: обраний пристрій камери, позиція/розмір/форма оверлею.
-/// Використовується UI (ContentView) і Compositor для фінального склеювання (Етап 5, 6).
 @MainActor
 final class RecordingSettings: ObservableObject {
     @Published var selectedCameraID: String = ""
     @Published var overlayPosition: OverlayPosition = .bottomRight
-    @Published var overlaySize: Double = 0.2 // частка ширини екрану
+    @Published var overlaySize: Double = 0.2
     @Published var overlayShape: OverlayShape = .circle
 }

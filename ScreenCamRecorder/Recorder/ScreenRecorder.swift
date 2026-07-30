@@ -2,7 +2,6 @@ import Foundation
 import ScreenCaptureKit
 import AVFoundation
 
-/// Етап 2: Запис екрану через ScreenCaptureKit.
 @MainActor
 final class ScreenRecorder: NSObject, ObservableObject {
 
@@ -12,9 +11,10 @@ final class ScreenRecorder: NSObject, ObservableObject {
     private var outputURL: URL?
     private var sessionStarted = false
 
+    private(set) var startHostTime: CFTimeInterval?
+
     private let outputQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.screenOutput")
 
-    /// Запитує дозвіл на запис екрану (System Settings → Privacy & Security → Screen Recording).
     func requestPermissionIfNeeded() async -> Bool {
         do {
             _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
@@ -25,7 +25,6 @@ final class ScreenRecorder: NSObject, ObservableObject {
         }
     }
 
-    /// Старт запису екрану. Викликається паралельно з CameraRecorder.start() (Етап 4).
     func start() async {
         guard await requestPermissionIfNeeded() else { return }
 
@@ -67,6 +66,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             self.assetWriter = writer
             self.videoInput = input
             self.sessionStarted = false
+            self.startHostTime = nil
             self.stream = stream
 
             try await stream.startCapture()
@@ -75,7 +75,6 @@ final class ScreenRecorder: NSObject, ObservableObject {
         }
     }
 
-    /// Зупиняє запис і повертає URL готового файлу.
     func stop() async -> URL? {
         if let stream {
             do {
@@ -115,6 +114,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
         if !sessionStarted {
             writer.startSession(atSourceTime: sampleBuffer.presentationTimeStamp)
             sessionStarted = true
+            startHostTime = ProcessInfo.processInfo.systemUptime
         }
         if input.isReadyForMoreMediaData {
             input.append(sampleBuffer)

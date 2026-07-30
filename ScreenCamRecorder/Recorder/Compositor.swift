@@ -3,9 +3,6 @@ import AVFoundation
 import CoreImage
 import CoreImage.CIFilterBuiltins
 
-/// Етап 5: Склеювання екрану + камери в один файл (post-processing підхід).
-/// Накладає відео камери (з маскою круг/прямокутник) поверх запису екрану
-/// у позицію та розмір з RecordingSettings.
 enum Compositor {
 
     enum CompositorError: Error {
@@ -17,6 +14,8 @@ enum Compositor {
     static func combine(
         screenURL: URL,
         cameraURL: URL,
+        screenStartTime: CFTimeInterval?,
+        cameraStartTime: CFTimeInterval?,
         settings: RecordingSettings
     ) async throws -> URL {
 
@@ -36,15 +35,19 @@ enum Compositor {
 
         let screenDuration = try await screenAsset.load(.duration)
         let cameraDuration = try await cameraAsset.load(.duration)
-        let duration = min(screenDuration, cameraDuration)
+
+        let (screenTrim, cameraTrim) = startTrims(screenStartTime: screenStartTime, cameraStartTime: cameraStartTime)
+        let screenAvailable = max(.zero, screenDuration - screenTrim)
+        let cameraAvailable = max(.zero, cameraDuration - cameraTrim)
+        let duration = min(screenAvailable, cameraAvailable)
         let range = CMTimeRange(start: .zero, duration: duration)
 
-        try compScreenTrack.insertTimeRange(range, of: screenTrack, at: .zero)
-        try compCameraTrack.insertTimeRange(range, of: cameraTrack, at: .zero)
+        try compScreenTrack.insertTimeRange(CMTimeRange(start: screenTrim, duration: duration), of: screenTrack, at: .zero)
+        try compCameraTrack.insertTimeRange(CMTimeRange(start: cameraTrim, duration: duration), of: cameraTrack, at: .zero)
 
         if let cameraAudioTrack = try await cameraAsset.loadTracks(withMediaType: .audio).first,
            let compAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
-            try compAudioTrack.insertTimeRange(range, of: cameraAudioTrack, at: .zero)
+            try compAudioTrack.insertTimeRange(CMTimeRange(start: cameraTrim, duration: duration), of: cameraAudioTrack, at: .zero)
         }
 
         let renderSize = try await screenTrack.load(.naturalSize)
@@ -84,9 +87,23 @@ enum Compositor {
 
         return outputURL
     }
+
+    private static func startTrims(
+        screenStartTime: CFTimeInterval?,
+        cameraStartTime: CFTimeInterval?
+    ) -> (screen: CMTime, camera: CMTime) {
+        guard let screenStartTime, let cameraStartTime else { return (.zero, .zero) }
+        let offsetSeconds = cameraStartTime - screenStartTime
+        let offset = CMTime(seconds: abs(offsetSeconds), preferredTimescale: 600)
+        if offsetSeconds > 0 {
+            return (offset, .zero)
+        } else if offsetSeconds < 0 {
+            return (.zero, offset)
+        }
+        return (.zero, .zero)
+    }
 }
 
-/// Одна інструкція на весь ролик: завжди композитить обидва треки через OverlayCompositor.
 private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionProtocol {
     let timeRange: CMTimeRange
     let enablePostProcessing = false
@@ -122,7 +139,6 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
     }
 }
 
-/// Рендерить кожен кадр: екран як фон, камера (замаскована й позиційована) зверху.
 private final class OverlayCompositor: NSObject, AVVideoCompositing {
 
     let sourcePixelBufferAttributes: [String: Any]? = [

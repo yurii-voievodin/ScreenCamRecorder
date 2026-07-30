@@ -19,7 +19,6 @@ struct ContentView: View {
             Text(statusText)
                 .foregroundStyle(.secondary)
 
-            // MARK: - Налаштування камери (Етап 6)
             GroupBox("Камера") {
                 VStack(alignment: .leading, spacing: 10) {
                     Picker("Пристрій", selection: $settings.selectedCameraID) {
@@ -48,7 +47,6 @@ struct ContentView: View {
                 .padding(.top, 4)
             }
 
-            // MARK: - Керування записом (Етапи 1-4)
             Button(action: toggleRecording) {
                 Label(isRecording ? "Зупинити" : "Почати запис",
                       systemImage: isRecording ? "stop.circle.fill" : "record.circle")
@@ -57,7 +55,6 @@ struct ContentView: View {
             .buttonStyle(.borderedProminent)
             .tint(isRecording ? .red : .accentColor)
 
-            // MARK: - Експорт (Етап 7)
             if let lastRecordingURL {
                 Button {
                     NSWorkspace.shared.activateFileViewerSelecting([lastRecordingURL])
@@ -79,12 +76,15 @@ struct ContentView: View {
                 statusText = "Обробка та склеювання відео…"
                 let screenURL = await screenRecorder.stop()
                 let cameraURL = await cameraRecorder.stop()
+                let screenStartTime = screenRecorder.startHostTime
+                let cameraStartTime = cameraRecorder.startHostTime
 
-                // MARK: - Композитинг (Етап 5)
                 if let screenURL, let cameraURL {
                     let outputURL = try? await Compositor.combine(
                         screenURL: screenURL,
                         cameraURL: cameraURL,
+                        screenStartTime: screenStartTime,
+                        cameraStartTime: cameraStartTime,
                         settings: settings
                     )
                     lastRecordingURL = outputURL
@@ -96,7 +96,6 @@ struct ContentView: View {
             } else {
                 lastRecordingURL = nil
                 statusText = "Йде запис…"
-                // Синхронний старт обох потоків (Етап 4)
                 async let screenStart: () = screenRecorder.start()
                 async let cameraStart: () = cameraRecorder.start(deviceID: settings.selectedCameraID)
                 _ = await (screenStart, cameraStart)

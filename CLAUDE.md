@@ -40,10 +40,16 @@ than compositing frames in real time, at the cost of an export step after record
 - **`ContentView`** owns three `@StateObject`s — `RecordingSettings`, `ScreenRecorder`, `CameraRecorder` —
   and drives the whole lifecycle from `toggleRecording()`.
 - **Start**: `ScreenRecorder.start()` and `CameraRecorder.start(deviceID:)` are kicked off together via
-  `async let` so both capture sessions begin as close to simultaneously as possible. There is no shared
-  `CMClock` between them — sync relies on both starting near-simultaneously plus `Compositor` trimming both
-  tracks to `min(screenDuration, cameraDuration)` at export time. If audio/video drift becomes an issue,
-  this is the place to look.
+  `async let` so both capture sessions begin as close to simultaneously as possible. There is still no
+  shared `CMClock` between them, but each recorder now stamps `startHostTime` (`ProcessInfo.systemUptime`)
+  the moment its *first actual frame* arrives — `ScreenRecorder` in `handle(_:)`, `CameraRecorder` via the
+  `AVCaptureFileOutputRecordingDelegate.fileOutput(_:didStartRecordingTo:from:)` callback. `Compositor`
+  compares the two timestamps and trims the leading edge of whichever stream started first before
+  inserting both into the composition, so the two tracks line up at the same real-world moment instead of
+  both naively starting at composition time zero. This corrects the one-time start-latency offset (e.g.
+  `SCShareableContent`/`SCStream.startCapture()` setup taking longer than `AVCaptureSession.startRunning()`)
+  but does **not** correct for clock-rate drift accumulating over a long recording — if that becomes an
+  issue, this is the place to look next.
 - **`ScreenRecorder`** wraps `ScreenCaptureKit` (`SCStream` + `SCStreamOutput`) and writes frames directly
   to an `AVAssetWriter` `.mov` in the temp directory. It filters `SCStreamFrameInfo` for `.complete` status
   before appending — partial/idle frames are dropped in `handle(_:)`. Screen Recording permission is *not*
