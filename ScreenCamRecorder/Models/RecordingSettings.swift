@@ -23,8 +23,11 @@ enum OverlayShape: String, CaseIterable {
 
 @MainActor
 final class RecordingSettings: ObservableObject {
+    static let noMicrophoneID = "none"
+
     private enum Keys {
         static let selectedCameraID = "selectedCameraID"
+        static let selectedMicrophoneID = "selectedMicrophoneID"
         static let selectedDisplayID = "selectedDisplayID"
         static let overlayPosition = "overlayPosition"
         static let overlaySize = "overlaySize"
@@ -33,6 +36,9 @@ final class RecordingSettings: ObservableObject {
 
     @Published var selectedCameraID: String {
         didSet { UserDefaults.standard.set(selectedCameraID, forKey: Keys.selectedCameraID) }
+    }
+    @Published var selectedMicrophoneID: String {
+        didSet { UserDefaults.standard.set(selectedMicrophoneID, forKey: Keys.selectedMicrophoneID) }
     }
     @Published var selectedDisplayID: CGDirectDisplayID {
         didSet { UserDefaults.standard.set(Int(selectedDisplayID), forKey: Keys.selectedDisplayID) }
@@ -50,6 +56,7 @@ final class RecordingSettings: ObservableObject {
     init() {
         let defaults = UserDefaults.standard
         selectedCameraID = defaults.string(forKey: Keys.selectedCameraID) ?? ""
+        selectedMicrophoneID = defaults.string(forKey: Keys.selectedMicrophoneID) ?? ""
         selectedDisplayID = CGDirectDisplayID(defaults.integer(forKey: Keys.selectedDisplayID))
         overlayPosition = (defaults.string(forKey: Keys.overlayPosition)).flatMap(OverlayPosition.init) ?? .bottomRight
         overlaySize = defaults.object(forKey: Keys.overlaySize) as? Double ?? 0.2

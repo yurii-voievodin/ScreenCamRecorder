@@ -69,6 +69,18 @@ struct ContentView: View {
                 .padding(.top, 4)
             }
 
+            GroupBox("Аудіо") {
+                Picker("Мікрофон", selection: $settings.selectedMicrophoneID) {
+                    Text("Системний мікрофон").tag("")
+                    ForEach(cameraRecorder.availableMicrophones, id: \.uniqueID) { device in
+                        Text(device.localizedName).tag(device.uniqueID)
+                    }
+                    Text("Без звуку").tag(RecordingSettings.noMicrophoneID)
+                }
+                .disabled(isRecording)
+                .padding(.top, 4)
+            }
+
             Button(action: toggleRecording) {
                 Label(isRecording ? "Зупинити" : "Почати запис",
                       systemImage: isRecording ? "stop.circle.fill" : "record.circle")
@@ -103,12 +115,20 @@ struct ContentView: View {
                 await cameraRecorder.selectCamera(deviceID: settings.selectedCameraID)
                 showPreviewWindow()
             }
+
+            await cameraRecorder.refreshAvailableMicrophones()
+            await cameraRecorder.selectMicrophone(deviceID: settings.selectedMicrophoneID)
         }
         .onChange(of: settings.selectedCameraID) { newValue in
             guard !newValue.isEmpty else { return }
             Task {
                 await cameraRecorder.selectCamera(deviceID: newValue)
                 showPreviewWindow()
+            }
+        }
+        .onChange(of: settings.selectedMicrophoneID) { newValue in
+            Task {
+                await cameraRecorder.selectMicrophone(deviceID: newValue)
             }
         }
         .onChange(of: settings.selectedDisplayID) { _ in showPreviewWindow() }

@@ -5,6 +5,7 @@ import Foundation
 final class CameraRecorder: NSObject, ObservableObject {
 
     @Published var availableCameras: [AVCaptureDevice] = []
+    @Published var availableMicrophones: [AVCaptureDevice] = []
 
     let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.cameraSession")
@@ -25,6 +26,10 @@ final class CameraRecorder: NSObject, ObservableObject {
             position: .unspecified
         )
         availableCameras = discovery.devices
+    }
+
+    func refreshAvailableMicrophones() async {
+        availableMicrophones = AVCaptureDevice.devices(for: .audio)
     }
 
     func requestPermissionIfNeeded() async -> Bool {
@@ -114,30 +119,59 @@ final class CameraRecorder: NSObject, ObservableObject {
         }
     }
 
+    func selectMicrophone(deviceID: String) async {
+        if deviceID == RecordingSettings.noMicrophoneID {
+            if let audioInput {
+                session.beginConfiguration()
+                session.removeInput(audioInput)
+                session.commitConfiguration()
+                self.audioInput = nil
+            }
+            return
+        }
+
+        guard await requestMicrophonePermissionIfNeeded() else {
+            print("CameraRecorder: microphone permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue))")
+            return
+        }
+
+        if availableMicrophones.isEmpty {
+            await refreshAvailableMicrophones()
+        }
+
+        let device = deviceID.isEmpty
+            ? AVCaptureDevice.default(for: .audio)
+            : (availableMicrophones.first(where: { $0.uniqueID == deviceID }) ?? AVCaptureDevice.default(for: .audio))
+
+        guard let device else {
+            print("CameraRecorder: no microphone device available")
+            return
+        }
+
+        guard audioInput?.device.uniqueID != device.uniqueID else { return }
+
+        do {
+            let input = try AVCaptureDeviceInput(device: device)
+            session.beginConfiguration()
+            if let audioInput {
+                session.removeInput(audioInput)
+            }
+            if session.canAddInput(input) {
+                session.addInput(input)
+                audioInput = input
+            } else {
+                print("CameraRecorder: cannot add microphone input for device \(device.localizedName)")
+            }
+            session.commitConfiguration()
+        } catch {
+            print("CameraRecorder: failed to create microphone input: \(error)")
+        }
+    }
+
     func startRecording() async {
         guard let movieOutput else {
             print("CameraRecorder: camera not configured, cannot start recording")
             return
-        }
-
-        if audioInput == nil {
-            if await requestMicrophonePermissionIfNeeded(), let microphone = AVCaptureDevice.default(for: .audio) {
-                do {
-                    let micInput = try AVCaptureDeviceInput(device: microphone)
-                    session.beginConfiguration()
-                    if session.canAddInput(micInput) {
-                        session.addInput(micInput)
-                        audioInput = micInput
-                    } else {
-                        print("CameraRecorder: cannot add microphone input")
-                    }
-                    session.commitConfiguration()
-                } catch {
-                    print("CameraRecorder: failed to create microphone input: \(error)")
-                }
-            } else {
-                print("CameraRecorder: microphone permission not granted or no default audio input device found")
-            }
         }
 
         let url = FileManager.default.temporaryDirectory
