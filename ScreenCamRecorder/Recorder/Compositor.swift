@@ -42,6 +42,11 @@ enum Compositor {
         try compScreenTrack.insertTimeRange(range, of: screenTrack, at: .zero)
         try compCameraTrack.insertTimeRange(range, of: cameraTrack, at: .zero)
 
+        if let cameraAudioTrack = try await cameraAsset.loadTracks(withMediaType: .audio).first,
+           let compAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
+            try compAudioTrack.insertTimeRange(range, of: cameraAudioTrack, at: .zero)
+        }
+
         let renderSize = try await screenTrack.load(.naturalSize)
 
         let videoComposition = AVMutableVideoComposition()

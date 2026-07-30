@@ -11,6 +11,7 @@ final class CameraRecorder: NSObject, ObservableObject {
     private let sessionQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.cameraSession")
     private var movieOutput: AVCaptureMovieFileOutput?
     private var currentInput: AVCaptureDeviceInput?
+    private var audioInput: AVCaptureDeviceInput?
     private var outputURL: URL?
     private var recordingFinished: CheckedContinuation<Void, Never>?
 
@@ -37,6 +38,23 @@ final class CameraRecorder: NSObject, ObservableObject {
         }
     }
 
+    /// Запитує дозвіл на мікрофон. Звук не обов'язковий — відмова не блокує запис відео.
+    private func requestMicrophonePermissionIfNeeded() async -> Bool {
+        let status = AVCaptureDevice.authorizationStatus(for: .audio)
+        switch status {
+        case .authorized:
+            return true
+        case .notDetermined:
+            return await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+                AVCaptureDevice.requestAccess(for: .audio) { granted in
+                    continuation.resume(returning: granted)
+                }
+            }
+        default:
+            return false
+        }
+    }
+
     /// Старт запису з обраної камери. Викликається паралельно з ScreenRecorder.start() (Етап 4).
     func start(deviceID: String) async {
         guard await requestPermissionIfNeeded() else {
@@ -55,6 +73,18 @@ final class CameraRecorder: NSObject, ObservableObject {
             return
         }
 
+        var microphone: AVCaptureDevice?
+        if audioInput == nil {
+            if await requestMicrophonePermissionIfNeeded() {
+                microphone = AVCaptureDevice.default(for: .audio)
+                if microphone == nil {
+                    print("CameraRecorder: no default audio input device found")
+                }
+            } else {
+                print("CameraRecorder: microphone permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue))")
+            }
+        }
+
         do {
             let input = try AVCaptureDeviceInput(device: device)
 
@@ -67,6 +97,19 @@ final class CameraRecorder: NSObject, ObservableObject {
                 currentInput = input
             } else {
                 print("CameraRecorder: cannot add input for device \(device.localizedName)")
+            }
+            if let microphone {
+                do {
+                    let micInput = try AVCaptureDeviceInput(device: microphone)
+                    if session.canAddInput(micInput) {
+                        session.addInput(micInput)
+                        audioInput = micInput
+                    } else {
+                        print("CameraRecorder: cannot add microphone input")
+                    }
+                } catch {
+                    print("CameraRecorder: failed to create microphone input: \(error)")
+                }
             }
             if movieOutput == nil {
                 let output = AVCaptureMovieFileOutput()
