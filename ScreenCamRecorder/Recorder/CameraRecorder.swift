@@ -15,7 +15,7 @@ final class CameraRecorder: NSObject, ObservableObject {
     /// Оновлює список доступних камер для Picker в ContentView.
     func refreshAvailableCameras() async {
         let discovery = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInWideAngleCamera, .external],
+            deviceTypes: [.builtInWideAngleCamera],
             mediaType: .video,
             position: .unspecified
         )
