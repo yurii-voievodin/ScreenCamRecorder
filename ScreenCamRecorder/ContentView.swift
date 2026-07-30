@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import ScreenCaptureKit
 
 struct ContentView: View {
     @StateObject private var settings = RecordingSettings()
@@ -20,6 +21,19 @@ struct ContentView: View {
 
             Text(statusText)
                 .foregroundStyle(.secondary)
+
+            GroupBox("Екран") {
+                Picker("Дисплей", selection: $settings.selectedDisplayID) {
+                    if screenRecorder.availableDisplays.isEmpty {
+                        Text("Немає екрана").tag(CGDirectDisplayID(0))
+                    }
+                    ForEach(screenRecorder.availableDisplays, id: \.displayID) { display in
+                        Text(displayName(for: display)).tag(display.displayID)
+                    }
+                }
+                .disabled(isRecording)
+                .padding(.top, 4)
+            }
 
             GroupBox("Камера") {
                 VStack(alignment: .leading, spacing: 10) {
@@ -74,6 +88,11 @@ struct ContentView: View {
         .padding(24)
         .frame(width: 360)
         .task {
+            await screenRecorder.refreshAvailableDisplays()
+            if !screenRecorder.availableDisplays.contains(where: { $0.displayID == settings.selectedDisplayID }) {
+                settings.selectedDisplayID = screenRecorder.availableDisplays.first?.displayID ?? 0
+            }
+
             await cameraRecorder.refreshAvailableCameras()
             if previewWindowController == nil {
                 previewWindowController = CameraPreviewWindowController(session: cameraRecorder.session)
@@ -92,6 +111,7 @@ struct ContentView: View {
                 showPreviewWindow()
             }
         }
+        .onChange(of: settings.selectedDisplayID) { _ in showPreviewWindow() }
         .onChange(of: settings.overlayPosition) { _ in showPreviewWindow() }
         .onChange(of: settings.overlaySize) { _ in showPreviewWindow() }
         .onChange(of: settings.overlayShape) { _ in showPreviewWindow() }
@@ -124,7 +144,7 @@ struct ContentView: View {
             } else {
                 lastRecordingURL = nil
                 statusText = "Йде запис…"
-                async let screenStart: () = screenRecorder.start()
+                async let screenStart: () = screenRecorder.start(displayID: settings.selectedDisplayID)
                 async let cameraStart: () = cameraRecorder.startRecording()
                 _ = await (screenStart, cameraStart)
                 isRecording = true
@@ -169,10 +189,19 @@ struct ContentView: View {
         )
     }
 
+    private func displayName(for display: SCDisplay) -> String {
+        if let screen = NSScreen.screens.first(where: { screen in
+            (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == display.displayID
+        }) {
+            return screen.localizedName
+        }
+        return "Дисплей \(display.displayID)"
+    }
+
     private var recordedScreen: NSScreen? {
-        guard let recordedDisplayID = screenRecorder.recordedDisplayID else { return NSScreen.main }
+        let targetDisplayID = screenRecorder.recordedDisplayID ?? settings.selectedDisplayID
         return NSScreen.screens.first { screen in
-            (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == recordedDisplayID
+            (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == targetDisplayID
         } ?? NSScreen.main
     }
 }

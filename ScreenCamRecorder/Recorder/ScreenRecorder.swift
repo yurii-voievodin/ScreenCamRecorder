@@ -16,6 +16,8 @@ final class ScreenRecorder: NSObject, ObservableObject {
 
     var recordedDisplayID: CGDirectDisplayID? { currentDisplay?.displayID }
 
+    @Published private(set) var availableDisplays: [SCDisplay] = []
+
     private let outputQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.screenOutput")
 
     func requestPermissionIfNeeded() async -> Bool {
@@ -28,12 +30,24 @@ final class ScreenRecorder: NSObject, ObservableObject {
         }
     }
 
-    func start() async {
+    func refreshAvailableDisplays() async {
+        guard await requestPermissionIfNeeded() else { return }
+        do {
+            let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            availableDisplays = content.displays
+        } catch {
+            print("Failed to list available displays: \(error)")
+        }
+    }
+
+    func start(displayID: CGDirectDisplayID?) async {
         guard await requestPermissionIfNeeded() else { return }
 
         do {
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-            guard let display = content.displays.first else {
+            availableDisplays = content.displays
+            let selectedDisplay = displayID.flatMap { id in content.displays.first { $0.displayID == id } }
+            guard let display = selectedDisplay ?? content.displays.first else {
                 print("No display available for screen capture")
                 return
             }
