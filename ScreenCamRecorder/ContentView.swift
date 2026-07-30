@@ -14,91 +14,92 @@ struct ContentView: View {
     @State private var currentEdgeInsets = OverlayEdgeInsets.zero
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("ScreenCam Recorder")
-                .font(.title2)
-                .bold()
+        VStack(spacing: 14) {
+            statusRow
 
-            Text(statusText)
-                .foregroundStyle(.secondary)
-
-            GroupBox("Екран") {
-                Picker("Дисплей", selection: $settings.selectedDisplayID) {
-                    if screenRecorder.availableDisplays.isEmpty {
-                        Text("Немає екрана").tag(CGDirectDisplayID(0))
-                    }
-                    ForEach(screenRecorder.availableDisplays, id: \.displayID) { display in
-                        Text(displayName(for: display)).tag(display.displayID)
-                    }
-                }
-                .disabled(isRecording)
-                .padding(.top, 4)
-            }
-
-            GroupBox("Камера") {
+            card {
                 VStack(alignment: .leading, spacing: 10) {
-                    Picker("Пристрій", selection: $settings.selectedCameraID) {
-                        if cameraRecorder.availableCameras.isEmpty {
-                            Text("Немає камери").tag("")
+                    sourceRow(icon: "display", help: "Дисплей") {
+                        Picker("", selection: $settings.selectedDisplayID) {
+                            if screenRecorder.availableDisplays.isEmpty {
+                                Text("Немає екрана").tag(CGDirectDisplayID(0))
+                            }
+                            ForEach(screenRecorder.availableDisplays, id: \.displayID) { display in
+                                Text(displayName(for: display)).tag(display.displayID)
+                            }
                         }
-                        ForEach(cameraRecorder.availableCameras, id: \.uniqueID) { device in
-                            Text(device.localizedName).tag(device.uniqueID)
+                        .disabled(isRecording)
+                    }
+
+                    Divider()
+
+                    sourceRow(icon: "video.fill", help: "Камера") {
+                        Picker("", selection: $settings.selectedCameraID) {
+                            if cameraRecorder.availableCameras.isEmpty {
+                                Text("Немає камери").tag("")
+                            }
+                            ForEach(cameraRecorder.availableCameras, id: \.uniqueID) { device in
+                                Text(device.localizedName).tag(device.uniqueID)
+                            }
                         }
                     }
 
-                    Picker("Позиція", selection: $settings.overlayPosition) {
-                        ForEach(OverlayPosition.allCases) { position in
-                            Text(position.title).tag(position)
+                    Divider()
+
+                    sourceRow(icon: "mic.fill", help: "Мікрофон") {
+                        Picker("", selection: $settings.selectedMicrophoneID) {
+                            Text("Системний мікрофон").tag("")
+                            ForEach(cameraRecorder.availableMicrophones, id: \.uniqueID) { device in
+                                Text(device.localizedName).tag(device.uniqueID)
+                            }
+                            Text("Без звуку").tag(RecordingSettings.noMicrophoneID)
                         }
                     }
-                    .disabled(isRecording)
-
-                    HStack {
-                        Text("Розмір")
-                        Slider(value: $settings.overlaySize, in: 0.1...0.4)
-                    }
-                    .disabled(isRecording)
-
-                    Picker("Форма", selection: $settings.overlayShape) {
-                        Text("Круг").tag(OverlayShape.circle)
-                        Text("Прямокутник").tag(OverlayShape.rectangle)
-                    }
-                    .pickerStyle(.segmented)
-                    .disabled(isRecording)
                 }
-                .padding(.top, 4)
             }
 
-            GroupBox("Аудіо") {
-                Picker("Мікрофон", selection: $settings.selectedMicrophoneID) {
-                    Text("Системний мікрофон").tag("")
-                    ForEach(cameraRecorder.availableMicrophones, id: \.uniqueID) { device in
-                        Text(device.localizedName).tag(device.uniqueID)
+            card {
+                HStack(alignment: .center, spacing: 18) {
+                    CornerPositionPicker(selection: $settings.overlayPosition, isEnabled: !isRecording)
+
+                    VStack(spacing: 10) {
+                        Picker("", selection: $settings.overlayShape) {
+                            Image(systemName: "circle.fill").tag(OverlayShape.circle)
+                            Image(systemName: "rectangle.fill").tag(OverlayShape.rectangle)
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .disabled(isRecording)
+                        .help("Форма накладення камери")
+
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.down.right.and.arrow.up.left")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Slider(value: $settings.overlaySize, in: 0.1...0.4)
+                            Text(settings.overlaySize, format: .percent.precision(.fractionLength(0)))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                                .frame(width: 34, alignment: .trailing)
+                        }
+                        .disabled(isRecording)
                     }
-                    Text("Без звуку").tag(RecordingSettings.noMicrophoneID)
                 }
-                .disabled(isRecording)
-                .padding(.top, 4)
             }
 
             Button(action: toggleRecording) {
                 Label(isRecording ? "Зупинити" : "Почати запис",
                       systemImage: isRecording ? "stop.circle.fill" : "record.circle")
                     .font(.title3)
+                    .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .tint(isRecording ? .red : .accentColor)
-
-            if let lastRecordingURL {
-                Button {
-                    NSWorkspace.shared.activateFileViewerSelecting([lastRecordingURL])
-                } label: {
-                    Label("Показати у Finder", systemImage: "folder")
-                }
-            }
+            .controlSize(.large)
         }
-        .padding(24)
-        .frame(width: 360)
+        .padding(18)
+        .frame(width: 340)
         .task {
             await screenRecorder.refreshAvailableDisplays()
             if !screenRecorder.availableDisplays.contains(where: { $0.displayID == settings.selectedDisplayID }) {
@@ -135,6 +136,56 @@ struct ContentView: View {
         .onChange(of: settings.overlayPosition) { _ in showPreviewWindow() }
         .onChange(of: settings.overlaySize) { _ in showPreviewWindow() }
         .onChange(of: settings.overlayShape) { _ in showPreviewWindow() }
+    }
+
+    private var statusRow: some View {
+        HStack(spacing: 6) {
+            Image(systemName: isRecording ? "record.circle.fill" : "checkmark.circle.fill")
+                .foregroundStyle(isRecording ? .red : .secondary)
+            Text(statusText)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+
+            Spacer(minLength: 8)
+
+            if let lastRecordingURL {
+                Button {
+                    NSWorkspace.shared.activateFileViewerSelecting([lastRecordingURL])
+                } label: {
+                    Label("Показати у Finder", systemImage: "folder")
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.accentColor)
+                .layoutPriority(1)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.secondary.opacity(0.15)))
+    }
+
+    private func sourceRow<Content: View>(
+        icon: String,
+        help: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundStyle(.secondary)
+                .frame(width: 16)
+            content()
+                .labelsHidden()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .help(help)
     }
 
     private func toggleRecording() {
@@ -223,6 +274,49 @@ struct ContentView: View {
         return NSScreen.screens.first { screen in
             (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == targetDisplayID
         } ?? NSScreen.main
+    }
+}
+
+private struct CornerPositionPicker: View {
+    @Binding var selection: OverlayPosition
+    var isEnabled: Bool = true
+
+    private let size = CGSize(width: 64, height: 40)
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color.secondary.opacity(0.12))
+            ForEach(OverlayPosition.allCases) { position in
+                dot(for: position)
+            }
+        }
+        .frame(width: size.width, height: size.height)
+        .opacity(isEnabled ? 1 : 0.5)
+    }
+
+    private func dot(for position: OverlayPosition) -> some View {
+        let isSelected = selection == position
+        return Circle()
+            .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.4))
+            .frame(width: isSelected ? 14 : 8, height: isSelected ? 14 : 8)
+            .padding(6)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard isEnabled else { return }
+                selection = position
+            }
+            .help(position.title)
+            .frame(width: size.width, height: size.height, alignment: alignment(for: position))
+    }
+
+    private func alignment(for position: OverlayPosition) -> Alignment {
+        switch position {
+        case .topLeft: return .topLeading
+        case .topRight: return .topTrailing
+        case .bottomLeft: return .bottomLeading
+        case .bottomRight: return .bottomTrailing
+        }
     }
 }
 
