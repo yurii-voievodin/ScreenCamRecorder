@@ -15,15 +15,38 @@ enum OverlayPosition: String, CaseIterable, Identifiable {
     }
 }
 
-enum OverlayShape {
+enum OverlayShape: String, CaseIterable {
     case circle
     case rectangle
 }
 
 @MainActor
 final class RecordingSettings: ObservableObject {
-    @Published var selectedCameraID: String = ""
-    @Published var overlayPosition: OverlayPosition = .bottomRight
-    @Published var overlaySize: Double = 0.2
-    @Published var overlayShape: OverlayShape = .circle
+    private enum Keys {
+        static let selectedCameraID = "selectedCameraID"
+        static let overlayPosition = "overlayPosition"
+        static let overlaySize = "overlaySize"
+        static let overlayShape = "overlayShape"
+    }
+
+    @Published var selectedCameraID: String {
+        didSet { UserDefaults.standard.set(selectedCameraID, forKey: Keys.selectedCameraID) }
+    }
+    @Published var overlayPosition: OverlayPosition {
+        didSet { UserDefaults.standard.set(overlayPosition.rawValue, forKey: Keys.overlayPosition) }
+    }
+    @Published var overlaySize: Double {
+        didSet { UserDefaults.standard.set(overlaySize, forKey: Keys.overlaySize) }
+    }
+    @Published var overlayShape: OverlayShape {
+        didSet { UserDefaults.standard.set(overlayShape.rawValue, forKey: Keys.overlayShape) }
+    }
+
+    init() {
+        let defaults = UserDefaults.standard
+        selectedCameraID = defaults.string(forKey: Keys.selectedCameraID) ?? ""
+        overlayPosition = (defaults.string(forKey: Keys.overlayPosition)).flatMap(OverlayPosition.init) ?? .bottomRight
+        overlaySize = defaults.object(forKey: Keys.overlaySize) as? Double ?? 0.2
+        overlayShape = (defaults.string(forKey: Keys.overlayShape)).flatMap(OverlayShape.init) ?? .circle
+    }
 }

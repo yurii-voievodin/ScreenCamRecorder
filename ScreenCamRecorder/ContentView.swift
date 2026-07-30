@@ -80,6 +80,9 @@ struct ContentView: View {
             }
             if settings.selectedCameraID.isEmpty {
                 settings.selectedCameraID = cameraRecorder.availableCameras.first?.uniqueID ?? ""
+            } else {
+                await cameraRecorder.selectCamera(deviceID: settings.selectedCameraID)
+                showPreviewWindow()
             }
         }
         .onChange(of: settings.selectedCameraID) { newValue in
