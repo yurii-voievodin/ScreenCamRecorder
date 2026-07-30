@@ -104,7 +104,7 @@ enum Compositor {
     }
 }
 
-private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionProtocol {
+private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionProtocol, @unchecked Sendable {
     let timeRange: CMTimeRange
     let enablePostProcessing = false
     let containsTweening = true
@@ -139,7 +139,7 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
     }
 }
 
-private final class OverlayCompositor: NSObject, AVVideoCompositing {
+private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
 
     let sourcePixelBufferAttributes: [String: Any]? = [
         kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)

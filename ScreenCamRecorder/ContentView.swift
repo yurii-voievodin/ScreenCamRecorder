@@ -23,6 +23,9 @@ struct ContentView: View {
             GroupBox("Камера") {
                 VStack(alignment: .leading, spacing: 10) {
                     Picker("Пристрій", selection: $settings.selectedCameraID) {
+                        if cameraRecorder.availableCameras.isEmpty {
+                            Text("Немає камери").tag("")
+                        }
                         ForEach(cameraRecorder.availableCameras, id: \.uniqueID) { device in
                             Text(device.localizedName).tag(device.uniqueID)
                         }
@@ -71,6 +74,9 @@ struct ContentView: View {
         .frame(width: 360)
         .task {
             await cameraRecorder.refreshAvailableCameras()
+            if settings.selectedCameraID.isEmpty {
+                settings.selectedCameraID = cameraRecorder.availableCameras.first?.uniqueID ?? ""
+            }
             if previewWindowController == nil {
                 previewWindowController = CameraPreviewWindowController(session: cameraRecorder.session)
             }
