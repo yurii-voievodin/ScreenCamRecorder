@@ -7,48 +7,47 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		15B02114EF770457EA6208B7 /* ScreenCamRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenCamRecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DAA3FC7C9A35E8E5A98A3E0B /* HeadRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeadRecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		07D8BB6F4D7E4DD0038338C3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		B6F7636943BC2677E33A29C6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
-				ScreenCamRecorder.entitlements,
+				HeadRecorder.entitlements,
 			);
-			target = BB8FC7C49563A54B994B4348 /* ScreenCamRecorder */;
+			target = B661695D6F568E34C7141B7A /* HeadRecorder */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		15A8C941C4711BB1E986A58C /* ScreenCamRecorder */ = {
+		3E047D6FC9B902B7040B28AA /* HeadRecorder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				07D8BB6F4D7E4DD0038338C3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				B6F7636943BC2677E33A29C6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
 			);
 			explicitFileTypes = {
 			};
 			explicitFolders = (
 			);
-			path = ScreenCamRecorder;
+			path = HeadRecorder;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXGroup section */
-		2DF8EFE6C6647996A093C2F5 = {
+		92D8677FD7C867D54A04E376 = {
 			isa = PBXGroup;
 			children = (
-				15A8C941C4711BB1E986A58C /* ScreenCamRecorder */,
-				B7BDCCECD7964BE2F79C6352 /* Products */,
+				3E047D6FC9B902B7040B28AA /* HeadRecorder */,
+				E4A65D7395911FCD69E86099 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		B7BDCCECD7964BE2F79C6352 /* Products */ = {
+		E4A65D7395911FCD69E86099 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				15B02114EF770457EA6208B7 /* ScreenCamRecorder.app */,
+				DAA3FC7C9A35E8E5A98A3E0B /* HeadRecorder.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -56,63 +55,63 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		BB8FC7C49563A54B994B4348 /* ScreenCamRecorder */ = {
+		B661695D6F568E34C7141B7A /* HeadRecorder */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9D85F922F817BFAB70EAB93C /* Build configuration list for PBXNativeTarget "ScreenCamRecorder" */;
+			buildConfigurationList = C6DCEA3ED0FDB41AC59727C9 /* Build configuration list for PBXNativeTarget "HeadRecorder" */;
 			buildPhases = (
-				C9D48D102F1A0CF43F0580AB /* Sources */,
-				CE67D97F0656FA6E31714A5F /* Resources */,
+				03350E48D85D5FE716EEDD69 /* Sources */,
+				F8A16991185F67FBE5515D55 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				15A8C941C4711BB1E986A58C /* ScreenCamRecorder */,
+				3E047D6FC9B902B7040B28AA /* HeadRecorder */,
 			);
-			name = ScreenCamRecorder;
+			name = HeadRecorder;
 			packageProductDependencies = (
 			);
-			productName = ScreenCamRecorder;
-			productReference = 15B02114EF770457EA6208B7 /* ScreenCamRecorder.app */;
+			productName = HeadRecorder;
+			productReference = DAA3FC7C9A35E8E5A98A3E0B /* HeadRecorder.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		24FD7B574D675B59C31A16F8 /* Project object */ = {
+		FFF81D8AB35EEB1EA7EFF17E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					BB8FC7C49563A54B994B4348 = {
+					B661695D6F568E34C7141B7A = {
 						DevelopmentTeam = M2BF9ZE9NW;
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 8CC9220CDF80A1F27335C740 /* Build configuration list for PBXProject "ScreenCamRecorder" */;
+			buildConfigurationList = 8C31A847C6D79CCFDC6E6AF6 /* Build configuration list for PBXProject "HeadRecorder" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
 				en,
 			);
-			mainGroup = 2DF8EFE6C6647996A093C2F5;
+			mainGroup = 92D8677FD7C867D54A04E376;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = B7BDCCECD7964BE2F79C6352 /* Products */;
+			productRefGroup = E4A65D7395911FCD69E86099 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				BB8FC7C49563A54B994B4348 /* ScreenCamRecorder */,
+				B661695D6F568E34C7141B7A /* HeadRecorder */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		CE67D97F0656FA6E31714A5F /* Resources */ = {
+		F8A16991185F67FBE5515D55 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +121,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C9D48D102F1A0CF43F0580AB /* Sources */ = {
+		03350E48D85D5FE716EEDD69 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -132,33 +131,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		043CA5888296E952BABFBF35 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ScreenCamRecorder/ScreenCamRecorder.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = M2BF9ZE9NW;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = ScreenCamRecorder/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yuriivoevodin.ScreenCamRecorder;
-				SDKROOT = macosx;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		5953E98FD9EF703B37594B01 /* Debug */ = {
+		5B0FC941E4E2138BE080EE62 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -221,7 +194,69 @@
 			};
 			name = Debug;
 		};
-		A877B641E37E6A75174C33B3 /* Release */ = {
+		6D5B59FC25BA18A5FC759A78 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HeadRecorder/HeadRecorder.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_LANGUAGE = en;
+				DEVELOPMENT_TEAM = M2BF9ZE9NW;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Head Recorder";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to overlay your webcam video on the screen recording.";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to record audio along with the video.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yuriivoevodin.HeadRecorder;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		AC8D1B15116DA25DC3394F51 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HeadRecorder/HeadRecorder.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_LANGUAGE = en;
+				DEVELOPMENT_TEAM = M2BF9ZE9NW;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Head Recorder";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to overlay your webcam video on the screen recording.";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to record audio along with the video.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yuriivoevodin.HeadRecorder;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E41AE1A6CD48482C672DB4A8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -277,54 +312,28 @@
 			};
 			name = Release;
 		};
-		EB34D602E3D86F2AC671F696 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ScreenCamRecorder/ScreenCamRecorder.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = M2BF9ZE9NW;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = ScreenCamRecorder/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yuriivoevodin.ScreenCamRecorder;
-				SDKROOT = macosx;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8CC9220CDF80A1F27335C740 /* Build configuration list for PBXProject "ScreenCamRecorder" */ = {
+		8C31A847C6D79CCFDC6E6AF6 /* Build configuration list for PBXProject "HeadRecorder" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5953E98FD9EF703B37594B01 /* Debug */,
-				A877B641E37E6A75174C33B3 /* Release */,
+				5B0FC941E4E2138BE080EE62 /* Debug */,
+				E41AE1A6CD48482C672DB4A8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		9D85F922F817BFAB70EAB93C /* Build configuration list for PBXNativeTarget "ScreenCamRecorder" */ = {
+		C6DCEA3ED0FDB41AC59727C9 /* Build configuration list for PBXNativeTarget "HeadRecorder" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				043CA5888296E952BABFBF35 /* Debug */,
-				EB34D602E3D86F2AC671F696 /* Release */,
+				AC8D1B15116DA25DC3394F51 /* Debug */,
+				6D5B59FC25BA18A5FC759A78 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 24FD7B574D675B59C31A16F8 /* Project object */;
+	rootObject = FFF81D8AB35EEB1EA7EFF17E /* Project object */;
 }

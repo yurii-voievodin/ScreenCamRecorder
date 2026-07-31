@@ -10,7 +10,7 @@ code comments are in Ukrainian.
 ## Build / run
 
 Project is generated from `project.yml` via [XcodeGen](https://github.com/yonaskolb/XcodeGen).
-The `ScreenCamRecorder` target uses Xcode 16 synced folders, so new/moved/
+The `HeadRecorder` target uses Xcode 16 synced folders, so new/moved/
 deleted Swift files need no project change. Regenerate only when build
 settings, targets, or excludes change:
 
@@ -19,7 +19,7 @@ xcodegen generate
 ```
 
 ```bash
-xcodebuild -project ScreenCamRecorder.xcodeproj -scheme ScreenCamRecorder -configuration Debug build
+xcodebuild -project HeadRecorder.xcodeproj -scheme HeadRecorder -configuration Debug build
 ```
 
 ## Architecture

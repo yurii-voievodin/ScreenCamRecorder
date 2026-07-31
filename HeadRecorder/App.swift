@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct ScreenCamRecorderApp: App {
+struct HeadRecorderApp: App {
     init() {
         setvbuf(stdout, nil, _IONBF, 0)
     }

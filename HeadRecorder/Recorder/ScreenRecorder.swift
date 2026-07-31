@@ -19,7 +19,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
     @Published private(set) var availableDisplays: [SCDisplay] = []
     @Published private(set) var lastErrorMessage: String?
 
-    private let outputQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.screenOutput")
+    private let outputQueue = DispatchQueue(label: "com.yuriivoevodin.HeadRecorder.screenOutput")
 
     func requestPermissionIfNeeded() async -> Bool {
         do {

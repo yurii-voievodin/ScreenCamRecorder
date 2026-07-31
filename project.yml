@@ -1,4 +1,4 @@
-name: ScreenCamRecorder
+name: HeadRecorder
 options:
   bundleIdPrefix: com.yuriivoevodin
   deploymentTarget:
@@ -6,22 +6,21 @@ options:
   createIntermediateGroups: true
 
 targets:
-  ScreenCamRecorder:
+  HeadRecorder:
     type: application
     platform: macOS
     deploymentTarget: "13.0"
     sources:
-      - path: ScreenCamRecorder
+      - path: HeadRecorder
         type: syncedFolder
         excludes:
-          - "Info.plist"
-          - "ScreenCamRecorder.entitlements"
+          - "HeadRecorder.entitlements"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.yuriivoevodin.ScreenCamRecorder
-        INFOPLIST_FILE: ScreenCamRecorder/Info.plist
-        CODE_SIGN_ENTITLEMENTS: ScreenCamRecorder/ScreenCamRecorder.entitlements
-        GENERATE_INFOPLIST_FILE: false
+        PRODUCT_BUNDLE_IDENTIFIER: com.yuriivoevodin.HeadRecorder
+        CODE_SIGN_ENTITLEMENTS: HeadRecorder/HeadRecorder.entitlements
+        GENERATE_INFOPLIST_FILE: true
+        DEVELOPMENT_LANGUAGE: en
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"
@@ -32,3 +31,8 @@ targets:
         STRING_CATALOG_GENERATE_SYMBOLS: true
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: M2BF9ZE9NW
+        INFOPLIST_KEY_CFBundleDisplayName: "Head Recorder"
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
+        INFOPLIST_KEY_NSCameraUsageDescription: "This app needs camera access to overlay your webcam video on the screen recording."
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "This app needs microphone access to record audio along with the video."
+        INFOPLIST_KEY_NSHighResolutionCapable: true

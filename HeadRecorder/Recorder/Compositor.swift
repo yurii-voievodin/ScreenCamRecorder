@@ -160,7 +160,7 @@ private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked 
     ]
 
     private let context = CIContext()
-    private let stateQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.overlayCompositor")
+    private let stateQueue = DispatchQueue(label: "com.yuriivoevodin.HeadRecorder.overlayCompositor")
     private var renderContext: AVVideoCompositionRenderContext?
 
     func renderContextChanged(_ newRenderContext: AVVideoCompositionRenderContext) {

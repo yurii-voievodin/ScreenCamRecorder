@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Генерує AppIcon для ScreenCamRecorder: градієнт + вікно "робочого столу" +
+"""Генерує AppIcon для HeadRecorder: градієнт + вікно "робочого столу" +
 кругла бульбашка з силуетом людини в правому нижньому куті (той самий мотив,
 що й камера-оверлей у Compositor.swift).
 
 Потребує Pillow: pip3 install pillow
 
 Запуск: python3 Scripts/generate_app_icon.py
-Пише PNG прямо в ScreenCamRecorder/Assets.xcassets/AppIcon.appiconset/
+Пише PNG прямо в HeadRecorder/Assets.xcassets/AppIcon.appiconset/
 (Contents.json там уже містить відповідні "filename" — самі файли не чіпає).
 """
 
@@ -20,7 +20,7 @@ S = BASE * SS                  # working canvas size
 
 ICONSET_DIR = (
     Path(__file__).resolve().parent.parent
-    / "ScreenCamRecorder" / "Assets.xcassets" / "AppIcon.appiconset"
+    / "HeadRecorder" / "Assets.xcassets" / "AppIcon.appiconset"
 )
 
 SIZES = {
