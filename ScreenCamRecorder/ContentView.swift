@@ -37,15 +37,24 @@ struct ContentView: View {
                     Divider()
 
                     SourceRow(icon: "video.fill", help: "Камера") {
-                        Picker("Камера", selection: $settings.selectedCameraID) {
-                            if cameraRecorder.availableCameras.isEmpty {
-                                Text("Немає камери").tag("")
+                        HStack(spacing: 8) {
+                            Picker("Камера", selection: $settings.selectedCameraID) {
+                                if cameraRecorder.availableCameras.isEmpty {
+                                    Text("Немає камери").tag("")
+                                }
+                                ForEach(cameraRecorder.availableCameras, id: \.uniqueID) { device in
+                                    Text(device.localizedName).tag(device.uniqueID)
+                                }
                             }
-                            ForEach(cameraRecorder.availableCameras, id: \.uniqueID) { device in
-                                Text(device.localizedName).tag(device.uniqueID)
+                            .disabled(isRecording)
+
+                            Toggle(isOn: $settings.isCameraMirrored) {
+                                Image(systemName: "flip.horizontal")
                             }
+                            .toggleStyle(.button)
+                            .disabled(isRecording)
+                            .help("Дзеркально відображати камеру")
                         }
-                        .disabled(isRecording)
                     }
 
                     Divider()
@@ -119,6 +128,7 @@ struct ContentView: View {
         .onChange(of: settings.overlayPosition) { _ in showPreviewWindow() }
         .onChange(of: settings.overlaySize) { _ in showPreviewWindow() }
         .onChange(of: settings.overlayShape) { _ in showPreviewWindow() }
+        .onChange(of: settings.isCameraMirrored) { _ in showPreviewWindow() }
         .onChange(of: cameraRecorder.lastErrorMessage) { message in
             if let message { statusText = message }
         }
@@ -217,7 +227,7 @@ struct ContentView: View {
             width: bubble.width,
             height: bubble.height
         )
-        previewWindowController.show(frame: screenFrame, shape: settings.overlayShape)
+        previewWindowController.show(frame: screenFrame, shape: settings.overlayShape, mirrored: settings.isCameraMirrored)
     }
 
     private func dockAvoidingInsets(for screen: NSScreen) -> OverlayEdgeInsets {

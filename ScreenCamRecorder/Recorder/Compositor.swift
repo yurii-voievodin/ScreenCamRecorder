@@ -65,7 +65,8 @@ enum Compositor {
             position: settings.overlayPosition,
             sizeFraction: settings.overlaySize,
             shape: settings.overlayShape,
-            edgeInsets: edgeInsets
+            edgeInsets: edgeInsets,
+            isMirrored: settings.isCameraMirrored
         )
         videoComposition.instructions = [instruction]
         videoComposition.customVideoCompositorClass = OverlayCompositor.self
@@ -122,6 +123,7 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
     let sizeFraction: Double
     let shape: OverlayShape
     let edgeInsets: OverlayEdgeInsets
+    let isMirrored: Bool
 
     init(
         timeRange: CMTimeRange,
@@ -131,7 +133,8 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
         position: OverlayPosition,
         sizeFraction: Double,
         shape: OverlayShape,
-        edgeInsets: OverlayEdgeInsets
+        edgeInsets: OverlayEdgeInsets,
+        isMirrored: Bool
     ) {
         self.timeRange = timeRange
         self.screenTrackID = screenTrackID
@@ -141,6 +144,7 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
         self.sizeFraction = sizeFraction
         self.shape = shape
         self.edgeInsets = edgeInsets
+        self.isMirrored = isMirrored
         self.requiredSourceTrackIDs = [NSNumber(value: screenTrackID), NSNumber(value: cameraTrackID)]
         super.init()
     }
@@ -180,7 +184,8 @@ private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked 
             position: instruction.position,
             sizeFraction: instruction.sizeFraction,
             shape: instruction.shape,
-            edgeInsets: instruction.edgeInsets
+            edgeInsets: instruction.edgeInsets,
+            isMirrored: instruction.isMirrored
         )
         let composited = overlay.composited(over: screenImage)
 
@@ -199,8 +204,17 @@ private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked 
         position: OverlayPosition,
         sizeFraction: Double,
         shape: OverlayShape,
-        edgeInsets: OverlayEdgeInsets
+        edgeInsets: OverlayEdgeInsets,
+        isMirrored: Bool
     ) -> CIImage {
+        var cameraImage = cameraImage
+        if isMirrored {
+            let extent = cameraImage.extent
+            let flip = CGAffineTransform(scaleX: -1, y: 1)
+                .concatenating(CGAffineTransform(translationX: extent.width + 2 * extent.origin.x, y: 0))
+            cameraImage = cameraImage.transformed(by: flip)
+        }
+
         let overlayWidth = renderSize.width * CGFloat(sizeFraction)
         let cameraExtent = cameraImage.extent
         let scale = overlayWidth / cameraExtent.width

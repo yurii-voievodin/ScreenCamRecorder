@@ -39,6 +39,7 @@ final class RecordingSettings: ObservableObject {
         static let overlayPosition = "overlayPosition"
         static let overlaySize = "overlaySize"
         static let overlayShape = "overlayShape"
+        static let isCameraMirrored = "isCameraMirrored"
     }
 
     @Published var selectedCameraID: String {
@@ -59,6 +60,9 @@ final class RecordingSettings: ObservableObject {
     @Published var overlayShape: OverlayShape {
         didSet { UserDefaults.standard.set(overlayShape.rawValue, forKey: Keys.overlayShape) }
     }
+    @Published var isCameraMirrored: Bool {
+        didSet { UserDefaults.standard.set(isCameraMirrored, forKey: Keys.isCameraMirrored) }
+    }
 
     init() {
         let defaults = UserDefaults.standard
@@ -68,5 +72,6 @@ final class RecordingSettings: ObservableObject {
         overlayPosition = (defaults.string(forKey: Keys.overlayPosition)).flatMap(OverlayPosition.init) ?? .bottomRight
         overlaySize = defaults.object(forKey: Keys.overlaySize) as? Double ?? 0.2
         overlayShape = (defaults.string(forKey: Keys.overlayShape)).flatMap(OverlayShape.init) ?? .circle
+        isCameraMirrored = defaults.object(forKey: Keys.isCameraMirrored) as? Bool ?? false
     }
 }

@@ -41,9 +41,14 @@ final class CameraPreviewWindowController: NSWindowController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func show(frame: CGRect, shape: OverlayShape) {
+    func show(frame: CGRect, shape: OverlayShape, mirrored: Bool) {
         guard let window else { return }
         window.setFrame(frame, display: true)
+
+        if let connection = previewLayer.connection, connection.isVideoMirroringSupported {
+            connection.automaticallyAdjustsVideoMirroring = false
+            connection.isVideoMirrored = mirrored
+        }
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
