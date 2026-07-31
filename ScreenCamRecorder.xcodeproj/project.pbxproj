@@ -8,22 +8,32 @@
 
 /* Begin PBXBuildFile section */
 		21E5429168580C421B2BE1EF /* RecordingSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4605A1670D2EF080F90A287D /* RecordingSettings.swift */; };
+		346ACC301760AC908AF480D3 /* SourceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41DA3CA7BE7CF60047F94E24 /* SourceRow.swift */; };
 		466BACB7363AB2F7F47312DE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8EC858F40C38C520DAF66DE0 /* Assets.xcassets */; };
 		6E3C6F0085C6D90B5543871D /* ScreenRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8861FE44650CAC6D07E7C16E /* ScreenRecorder.swift */; };
+		8D7BED66E7C4A65F46BE9E09 /* SessionRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EB83FF32A2B2384CF8F7FFB /* SessionRunner.swift */; };
 		930F0C5DFC3C7A97D7BF6030 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40BA35F52B7AE15BDC94DC56 /* ContentView.swift */; };
 		A113FD09DA79263CC94B02E6 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47879D05EF25573846E391CB /* App.swift */; };
 		BA7355429C3F4635DC9FA8A2 /* Compositor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D533C09216F0B203C70BDC54 /* Compositor.swift */; };
 		C14EAD9C07A8B48B5A048C20 /* CameraPreviewWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F69A5BA9A3062E0A0C2281D8 /* CameraPreviewWindowController.swift */; };
 		CD514046DB4FE81FD67FF4D0 /* OverlayGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE6FF7D848230DD9B1CC537 /* OverlayGeometry.swift */; };
+		ED9595EE7DD74539B45564D1 /* CornerPositionPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F3AC6FD130823AB8DF03823 /* CornerPositionPicker.swift */; };
+		EF6F1D2AE2EC5A560DB7DCD4 /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40AF73C525672CD358B3BEEF /* CardView.swift */; };
 		F2553A4D67F19D19678C15F7 /* CameraRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCF2D2B728BC6D6F57D62750 /* CameraRecorder.swift */; };
+		FFB08EC3E1006B4A9FDD5F17 /* StatusRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 720B3FB7048E3CCCF62802B2 /* StatusRow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		15B02114EF770457EA6208B7 /* ScreenCamRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenCamRecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3EB83FF32A2B2384CF8F7FFB /* SessionRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRunner.swift; sourceTree = "<group>"; };
+		3F3AC6FD130823AB8DF03823 /* CornerPositionPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerPositionPicker.swift; sourceTree = "<group>"; };
+		40AF73C525672CD358B3BEEF /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
 		40BA35F52B7AE15BDC94DC56 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		41DA3CA7BE7CF60047F94E24 /* SourceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceRow.swift; sourceTree = "<group>"; };
 		4605A1670D2EF080F90A287D /* RecordingSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSettings.swift; sourceTree = "<group>"; };
 		47879D05EF25573846E391CB /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		4EE6FF7D848230DD9B1CC537 /* OverlayGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayGeometry.swift; sourceTree = "<group>"; };
+		720B3FB7048E3CCCF62802B2 /* StatusRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusRow.swift; sourceTree = "<group>"; };
 		8861FE44650CAC6D07E7C16E /* ScreenRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenRecorder.swift; sourceTree = "<group>"; };
 		8EC858F40C38C520DAF66DE0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D533C09216F0B203C70BDC54 /* Compositor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compositor.swift; sourceTree = "<group>"; };
@@ -49,6 +59,17 @@
 			);
 			sourceTree = "<group>";
 		};
+		89B18178D1205F7F955076C0 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				40AF73C525672CD358B3BEEF /* CardView.swift */,
+				3F3AC6FD130823AB8DF03823 /* CornerPositionPicker.swift */,
+				41DA3CA7BE7CF60047F94E24 /* SourceRow.swift */,
+				720B3FB7048E3CCCF62802B2 /* StatusRow.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		B7BDCCECD7964BE2F79C6352 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -65,6 +86,7 @@
 				40BA35F52B7AE15BDC94DC56 /* ContentView.swift */,
 				0B6CB85EE293EBFB11ADE44F /* Models */,
 				E0CCF7B7A44A513E3587D539 /* Recorder */,
+				89B18178D1205F7F955076C0 /* Views */,
 			);
 			path = ScreenCamRecorder;
 			sourceTree = "<group>";
@@ -76,6 +98,7 @@
 				DCF2D2B728BC6D6F57D62750 /* CameraRecorder.swift */,
 				D533C09216F0B203C70BDC54 /* Compositor.swift */,
 				8861FE44650CAC6D07E7C16E /* ScreenRecorder.swift */,
+				3EB83FF32A2B2384CF8F7FFB /* SessionRunner.swift */,
 			);
 			path = Recorder;
 			sourceTree = "<group>";
@@ -108,7 +131,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2660;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					BB8FC7C49563A54B994B4348 = {
 						DevelopmentTeam = M2BF9ZE9NW;
@@ -154,11 +177,16 @@
 				A113FD09DA79263CC94B02E6 /* App.swift in Sources */,
 				C14EAD9C07A8B48B5A048C20 /* CameraPreviewWindowController.swift in Sources */,
 				F2553A4D67F19D19678C15F7 /* CameraRecorder.swift in Sources */,
+				EF6F1D2AE2EC5A560DB7DCD4 /* CardView.swift in Sources */,
 				BA7355429C3F4635DC9FA8A2 /* Compositor.swift in Sources */,
 				930F0C5DFC3C7A97D7BF6030 /* ContentView.swift in Sources */,
+				ED9595EE7DD74539B45564D1 /* CornerPositionPicker.swift in Sources */,
 				CD514046DB4FE81FD67FF4D0 /* OverlayGeometry.swift in Sources */,
 				21E5429168580C421B2BE1EF /* RecordingSettings.swift in Sources */,
 				6E3C6F0085C6D90B5543871D /* ScreenRecorder.swift in Sources */,
+				8D7BED66E7C4A65F46BE9E09 /* SessionRunner.swift in Sources */,
+				346ACC301760AC908AF480D3 /* SourceRow.swift in Sources */,
+				FFB08EC3E1006B4A9FDD5F17 /* StatusRow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,7 +203,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = M2BF9ZE9NW;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ScreenCamRecorder/Info.plist;
@@ -225,12 +253,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = M2BF9ZE9NW;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -251,7 +276,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -292,12 +316,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = M2BF9ZE9NW;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -311,7 +332,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -328,7 +348,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = M2BF9ZE9NW;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ScreenCamRecorder/Info.plist;

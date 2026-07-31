@@ -15,11 +15,11 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            statusRow
+            StatusRow(isRecording: isRecording, statusText: statusText, lastRecordingURL: lastRecordingURL)
 
-            card {
+            CardView {
                 VStack(alignment: .leading, spacing: 10) {
-                    sourceRow(icon: "display", help: "Дисплей") {
+                    SourceRow(icon: "display", help: "Дисплей") {
                         Picker("Дисплей", selection: $settings.selectedDisplayID) {
                             if screenRecorder.availableDisplays.isEmpty {
                                 Text("Немає екрана").tag(CGDirectDisplayID(0))
@@ -33,7 +33,7 @@ struct ContentView: View {
 
                     Divider()
 
-                    sourceRow(icon: "video.fill", help: "Камера") {
+                    SourceRow(icon: "video.fill", help: "Камера") {
                         Picker("Камера", selection: $settings.selectedCameraID) {
                             if cameraRecorder.availableCameras.isEmpty {
                                 Text("Немає камери").tag("")
@@ -42,11 +42,12 @@ struct ContentView: View {
                                 Text(device.localizedName).tag(device.uniqueID)
                             }
                         }
+                        .disabled(isRecording)
                     }
 
                     Divider()
 
-                    sourceRow(icon: "mic.fill", help: "Мікрофон") {
+                    SourceRow(icon: "mic.fill", help: "Мікрофон") {
                         Picker("Мікрофон", selection: $settings.selectedMicrophoneID) {
                             Text("Системний мікрофон").tag("")
                             ForEach(cameraRecorder.availableMicrophones, id: \.uniqueID) { device in
@@ -54,11 +55,12 @@ struct ContentView: View {
                             }
                             Text("Без звуку").tag(RecordingSettings.noMicrophoneID)
                         }
+                        .disabled(isRecording)
                     }
                 }
             }
 
-            card {
+            CardView {
                 HStack(alignment: .center, spacing: 18) {
                     CornerPositionPicker(selection: $settings.overlayPosition, isEnabled: !isRecording)
 
@@ -101,91 +103,50 @@ struct ContentView: View {
         }
         .padding(18)
         .frame(width: 340)
-        .task {
-            await screenRecorder.refreshAvailableDisplays()
-            if !screenRecorder.availableDisplays.contains(where: { $0.displayID == settings.selectedDisplayID }) {
-                settings.selectedDisplayID = screenRecorder.availableDisplays.first?.displayID ?? 0
-            }
-
-            await cameraRecorder.refreshAvailableCameras()
-            if previewWindowController == nil {
-                previewWindowController = CameraPreviewWindowController(session: cameraRecorder.session)
-            }
-            if settings.selectedCameraID.isEmpty {
-                settings.selectedCameraID = cameraRecorder.availableCameras.first?.uniqueID ?? ""
-            } else {
-                await cameraRecorder.selectCamera(deviceID: settings.selectedCameraID)
-                showPreviewWindow()
-            }
-
-            await cameraRecorder.refreshAvailableMicrophones()
-            await cameraRecorder.selectMicrophone(deviceID: settings.selectedMicrophoneID)
-        }
+        .task { await setUp() }
         .onChange(of: settings.selectedCameraID) { newValue in
-            guard !newValue.isEmpty else { return }
-            Task {
-                await cameraRecorder.selectCamera(deviceID: newValue)
-                showPreviewWindow()
-            }
+            Task { await cameraDidChange(to: newValue) }
         }
         .onChange(of: settings.selectedMicrophoneID) { newValue in
-            Task {
-                await cameraRecorder.selectMicrophone(deviceID: newValue)
-            }
+            Task { await cameraRecorder.selectMicrophone(deviceID: newValue) }
         }
         .onChange(of: settings.selectedDisplayID) { _ in showPreviewWindow() }
         .onChange(of: settings.overlayPosition) { _ in showPreviewWindow() }
         .onChange(of: settings.overlaySize) { _ in showPreviewWindow() }
         .onChange(of: settings.overlayShape) { _ in showPreviewWindow() }
-    }
-
-    private var statusRow: some View {
-        HStack(spacing: 6) {
-            Image(systemName: isRecording ? "record.circle.fill" : "checkmark.circle.fill")
-                .foregroundStyle(isRecording ? .red : .secondary)
-            Text(statusText)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-
-            Spacer(minLength: 8)
-
-            if let lastRecordingURL {
-                Button {
-                    NSWorkspace.shared.activateFileViewerSelecting([lastRecordingURL])
-                } label: {
-                    Label("Показати у Finder", systemImage: "folder")
-                        .font(.caption)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(Color.accentColor)
-                .layoutPriority(1)
-            }
+        .onChange(of: cameraRecorder.lastErrorMessage) { message in
+            if let message { statusText = message }
+        }
+        .onChange(of: screenRecorder.lastErrorMessage) { message in
+            if let message { statusText = message }
         }
     }
 
-    private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        content()
-            .padding(12)
-            .frame(maxWidth: .infinity)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .controlBackgroundColor)))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.secondary.opacity(0.15)))
+    private func setUp() async {
+        await screenRecorder.refreshAvailableDisplays()
+        if !screenRecorder.availableDisplays.contains(where: { $0.displayID == settings.selectedDisplayID }) {
+            settings.selectedDisplayID = screenRecorder.availableDisplays.first?.displayID ?? 0
+        }
+
+        await cameraRecorder.refreshAvailableCameras()
+        if previewWindowController == nil {
+            previewWindowController = CameraPreviewWindowController(session: cameraRecorder.session)
+        }
+        if settings.selectedCameraID.isEmpty {
+            settings.selectedCameraID = cameraRecorder.availableCameras.first?.uniqueID ?? ""
+        } else {
+            await cameraRecorder.selectCamera(deviceID: settings.selectedCameraID)
+            showPreviewWindow()
+        }
+
+        await cameraRecorder.refreshAvailableMicrophones()
+        await cameraRecorder.selectMicrophone(deviceID: settings.selectedMicrophoneID)
     }
 
-    private func sourceRow<Content: View>(
-        icon: String,
-        help: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(.secondary)
-                .frame(width: 16)
-            content()
-                .labelsHidden()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .help(help)
+    private func cameraDidChange(to deviceID: String) async {
+        guard !deviceID.isEmpty else { return }
+        await cameraRecorder.selectCamera(deviceID: deviceID)
+        showPreviewWindow()
     }
 
     private func toggleRecording() {
@@ -274,49 +235,6 @@ struct ContentView: View {
         return NSScreen.screens.first { screen in
             (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == targetDisplayID
         } ?? NSScreen.main
-    }
-}
-
-private struct CornerPositionPicker: View {
-    @Binding var selection: OverlayPosition
-    var isEnabled: Bool = true
-
-    private let size = CGSize(width: 64, height: 40)
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.secondary.opacity(0.12))
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    dot(for: .topLeft)
-                    Spacer(minLength: 0)
-                    dot(for: .topRight)
-                }
-                Spacer(minLength: 0)
-                HStack(spacing: 0) {
-                    dot(for: .bottomLeft)
-                    Spacer(minLength: 0)
-                    dot(for: .bottomRight)
-                }
-            }
-        }
-        .frame(width: size.width, height: size.height)
-        .opacity(isEnabled ? 1 : 0.5)
-    }
-
-    private func dot(for position: OverlayPosition) -> some View {
-        let isSelected = selection == position
-        return Circle()
-            .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.4))
-            .frame(width: isSelected ? 14 : 8, height: isSelected ? 14 : 8)
-            .padding(6)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                guard isEnabled else { return }
-                selection = position
-            }
-            .help(position.title)
     }
 }
 

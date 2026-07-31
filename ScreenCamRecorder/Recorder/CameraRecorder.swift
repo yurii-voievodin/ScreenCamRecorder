@@ -6,9 +6,10 @@ final class CameraRecorder: NSObject, ObservableObject {
 
     @Published var availableCameras: [AVCaptureDevice] = []
     @Published var availableMicrophones: [AVCaptureDevice] = []
+    @Published private(set) var lastErrorMessage: String?
 
     let session = AVCaptureSession()
-    private let sessionQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.cameraSession")
+    private let sessionRunner = SessionRunner()
     private var movieOutput: AVCaptureMovieFileOutput?
     private var currentInput: AVCaptureDeviceInput?
     private var audioInput: AVCaptureDeviceInput?
@@ -29,6 +30,7 @@ final class CameraRecorder: NSObject, ObservableObject {
     }
 
     func refreshAvailableMicrophones() async {
+        // AVCaptureDevice.DeviceType.microphone requires macOS 14+; deployment target is 13.0.
         availableMicrophones = AVCaptureDevice.devices(for: .audio)
     }
 
@@ -63,6 +65,7 @@ final class CameraRecorder: NSObject, ObservableObject {
     func selectCamera(deviceID: String) async {
         guard await requestPermissionIfNeeded() else {
             print("CameraRecorder: camera permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .video).rawValue))")
+            lastErrorMessage = "Немає дозволу на камеру"
             return
         }
 
@@ -72,6 +75,7 @@ final class CameraRecorder: NSObject, ObservableObject {
 
         guard let device = availableCameras.first(where: { $0.uniqueID == deviceID }) ?? availableCameras.first else {
             print("No camera device available")
+            lastErrorMessage = "Камера недоступна"
             return
         }
 
@@ -108,15 +112,7 @@ final class CameraRecorder: NSObject, ObservableObject {
             }
         }
 
-        let session = self.session
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            sessionQueue.async {
-                if !session.isRunning {
-                    session.startRunning()
-                }
-                continuation.resume()
-            }
-        }
+        await sessionRunner.start(session)
     }
 
     func selectMicrophone(deviceID: String) async {
@@ -132,6 +128,7 @@ final class CameraRecorder: NSObject, ObservableObject {
 
         guard await requestMicrophonePermissionIfNeeded() else {
             print("CameraRecorder: microphone permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue))")
+            lastErrorMessage = "Немає дозволу на мікрофон"
             return
         }
 
@@ -145,6 +142,7 @@ final class CameraRecorder: NSObject, ObservableObject {
 
         guard let device else {
             print("CameraRecorder: no microphone device available")
+            lastErrorMessage = "Мікрофон недоступний"
             return
         }
 

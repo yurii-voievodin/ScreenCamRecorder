@@ -17,6 +17,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
     var recordedDisplayID: CGDirectDisplayID? { currentDisplay?.displayID }
 
     @Published private(set) var availableDisplays: [SCDisplay] = []
+    @Published private(set) var lastErrorMessage: String?
 
     private let outputQueue = DispatchQueue(label: "com.yuriivoevodin.ScreenCamRecorder.screenOutput")
 
@@ -26,6 +27,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             return true
         } catch {
             print("Screen recording permission denied: \(error)")
+            lastErrorMessage = "Немає дозволу на запис екрана"
             return false
         }
     }
@@ -49,6 +51,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             let selectedDisplay = displayID.flatMap { id in content.displays.first { $0.displayID == id } }
             guard let display = selectedDisplay ?? content.displays.first else {
                 print("No display available for screen capture")
+                lastErrorMessage = "Дисплей недоступний"
                 return
             }
 
@@ -104,7 +107,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
                     break
                 }
                 if attempt < 4 {
-                    try await Task.sleep(nanoseconds: 100_000_000)
+                    try await Task.sleep(for: .milliseconds(100))
                 }
             }
             guard let matchedWindow else {

@@ -70,8 +70,10 @@ enum Compositor {
         videoComposition.instructions = [instruction]
         videoComposition.customVideoCompositorClass = OverlayCompositor.self
 
-        let outputURL = FileManager.default.urls(for: .moviesDirectory, in: .userDomainMask).first!
-            .appendingPathComponent("ScreenCamRecording-\(Date().timeIntervalSince1970).mov")
+        guard let moviesURL = FileManager.default.urls(for: .moviesDirectory, in: .userDomainMask).first else {
+            throw CompositorError.exportFailed
+        }
+        let outputURL = moviesURL.appendingPathComponent("ScreenCamRecording-\(Date.now.timeIntervalSince1970).mov")
 
         guard let export = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
             throw CompositorError.exportFailed
