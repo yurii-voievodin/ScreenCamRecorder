@@ -20,7 +20,7 @@ struct ContentView: View {
             card {
                 VStack(alignment: .leading, spacing: 10) {
                     sourceRow(icon: "display", help: "Дисплей") {
-                        Picker("", selection: $settings.selectedDisplayID) {
+                        Picker("Дисплей", selection: $settings.selectedDisplayID) {
                             if screenRecorder.availableDisplays.isEmpty {
                                 Text("Немає екрана").tag(CGDirectDisplayID(0))
                             }
@@ -34,7 +34,7 @@ struct ContentView: View {
                     Divider()
 
                     sourceRow(icon: "video.fill", help: "Камера") {
-                        Picker("", selection: $settings.selectedCameraID) {
+                        Picker("Камера", selection: $settings.selectedCameraID) {
                             if cameraRecorder.availableCameras.isEmpty {
                                 Text("Немає камери").tag("")
                             }
@@ -47,7 +47,7 @@ struct ContentView: View {
                     Divider()
 
                     sourceRow(icon: "mic.fill", help: "Мікрофон") {
-                        Picker("", selection: $settings.selectedMicrophoneID) {
+                        Picker("Мікрофон", selection: $settings.selectedMicrophoneID) {
                             Text("Системний мікрофон").tag("")
                             ForEach(cameraRecorder.availableMicrophones, id: \.uniqueID) { device in
                                 Text(device.localizedName).tag(device.uniqueID)
@@ -63,9 +63,10 @@ struct ContentView: View {
                     CornerPositionPicker(selection: $settings.overlayPosition, isEnabled: !isRecording)
 
                     VStack(spacing: 10) {
-                        Picker("", selection: $settings.overlayShape) {
-                            Image(systemName: "circle.fill").tag(OverlayShape.circle)
-                            Image(systemName: "rectangle.fill").tag(OverlayShape.rectangle)
+                        Picker("Форма", selection: $settings.overlayShape) {
+                            ForEach(OverlayShape.allCases, id: \.self) { shape in
+                                Image(systemName: shape.iconName).tag(shape)
+                            }
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
@@ -163,7 +164,6 @@ struct ContentView: View {
         }
     }
 
-    @ViewBuilder
     private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
             .padding(12)
@@ -287,8 +287,18 @@ private struct CornerPositionPicker: View {
         ZStack {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.secondary.opacity(0.12))
-            ForEach(OverlayPosition.allCases) { position in
-                dot(for: position)
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                    dot(for: .topLeft)
+                    Spacer(minLength: 0)
+                    dot(for: .topRight)
+                }
+                Spacer(minLength: 0)
+                HStack(spacing: 0) {
+                    dot(for: .bottomLeft)
+                    Spacer(minLength: 0)
+                    dot(for: .bottomRight)
+                }
             }
         }
         .frame(width: size.width, height: size.height)
@@ -307,16 +317,6 @@ private struct CornerPositionPicker: View {
                 selection = position
             }
             .help(position.title)
-            .frame(width: size.width, height: size.height, alignment: alignment(for: position))
-    }
-
-    private func alignment(for position: OverlayPosition) -> Alignment {
-        switch position {
-        case .topLeft: return .topLeading
-        case .topRight: return .topTrailing
-        case .bottomLeft: return .bottomLeading
-        case .bottomRight: return .bottomTrailing
-        }
     }
 }
 

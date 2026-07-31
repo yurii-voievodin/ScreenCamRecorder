@@ -19,6 +19,13 @@ enum OverlayPosition: String, CaseIterable, Identifiable {
 enum OverlayShape: String, CaseIterable {
     case circle
     case rectangle
+
+    var iconName: String {
+        switch self {
+        case .circle: return "circle.fill"
+        case .rectangle: return "rectangle.fill"
+        }
+    }
 }
 
 @MainActor
