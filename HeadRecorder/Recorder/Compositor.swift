@@ -152,10 +152,10 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
 
 private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
 
-    let sourcePixelBufferAttributes: [String: Any]? = [
+    let sourcePixelBufferAttributes: [String: any Sendable]? = [
         kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
     ]
-    let requiredPixelBufferAttributesForRenderContext: [String: Any] = [
+    let requiredPixelBufferAttributesForRenderContext: [String: any Sendable] = [
         kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
     ]
 

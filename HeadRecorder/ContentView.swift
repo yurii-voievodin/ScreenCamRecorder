@@ -24,11 +24,11 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     SourceRow(icon: "display", help: String(localized: .display)) {
                         Picker(selection: $settings.selectedDisplayID) {
-                            if screenRecorder.availableDisplays.isEmpty {
-                                Text(.noDisplay).tag(CGDirectDisplayID(0))
-                            }
                             ForEach(screenRecorder.availableDisplays, id: \.displayID) { display in
                                 Text(displayName(for: display)).tag(display.displayID)
+                            }
+                            if !screenRecorder.availableDisplays.contains(where: { $0.displayID == settings.selectedDisplayID }) {
+                                Text(.noDisplay).tag(settings.selectedDisplayID)
                             }
                         } label: {
                             Text(.display)
@@ -41,11 +41,11 @@ struct ContentView: View {
                     SourceRow(icon: "video.fill", help: String(localized: .camera)) {
                         HStack(spacing: 8) {
                             Picker(selection: $settings.selectedCameraID) {
-                                if cameraRecorder.availableCameras.isEmpty {
-                                    Text(.noCamera).tag("")
-                                }
                                 ForEach(cameraRecorder.availableCameras, id: \.uniqueID) { device in
                                     Text(device.localizedName).tag(device.uniqueID)
+                                }
+                                if !cameraRecorder.availableCameras.contains(where: { $0.uniqueID == settings.selectedCameraID }) {
+                                    Text(.noCamera).tag(settings.selectedCameraID)
                                 }
                             } label: {
                                 Text(.camera)
@@ -70,6 +70,11 @@ struct ContentView: View {
                                 Text(device.localizedName).tag(device.uniqueID)
                             }
                             Text(.noAudio).tag(RecordingSettings.noMicrophoneID)
+                            if !settings.selectedMicrophoneID.isEmpty,
+                               settings.selectedMicrophoneID != RecordingSettings.noMicrophoneID,
+                               !cameraRecorder.availableMicrophones.contains(where: { $0.uniqueID == settings.selectedMicrophoneID }) {
+                                Text(.noAudio).tag(settings.selectedMicrophoneID)
+                            }
                         } label: {
                             Text(.microphone)
                         }
