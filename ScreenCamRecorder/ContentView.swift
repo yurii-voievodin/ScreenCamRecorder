@@ -141,6 +141,7 @@ struct ContentView: View {
             settings.selectedCameraID = cameraRecorder.availableCameras.first?.uniqueID ?? ""
         } else {
             await cameraRecorder.selectCamera(deviceID: settings.selectedCameraID)
+            guard !Task.isCancelled else { return }
             showPreviewWindow()
         }
 
@@ -151,6 +152,7 @@ struct ContentView: View {
     private func cameraDidChange(to deviceID: String) async {
         guard !deviceID.isEmpty else { return }
         await cameraRecorder.selectCamera(deviceID: deviceID)
+        guard !Task.isCancelled else { return }
         showPreviewWindow()
     }
 
