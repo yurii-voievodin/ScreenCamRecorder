@@ -68,10 +68,12 @@ final class CameraRecorder: NSObject, ObservableObject {
             lastErrorMessage = "Немає дозволу на камеру"
             return
         }
+        guard !Task.isCancelled else { return }
 
         if availableCameras.isEmpty {
             await refreshAvailableCameras()
         }
+        guard !Task.isCancelled else { return }
 
         guard let device = availableCameras.first(where: { $0.uniqueID == deviceID }) ?? availableCameras.first else {
             print("No camera device available")
@@ -131,10 +133,12 @@ final class CameraRecorder: NSObject, ObservableObject {
             lastErrorMessage = "Немає дозволу на мікрофон"
             return
         }
+        guard !Task.isCancelled else { return }
 
         if availableMicrophones.isEmpty {
             await refreshAvailableMicrophones()
         }
+        guard !Task.isCancelled else { return }
 
         let device = deviceID.isEmpty
             ? AVCaptureDevice.default(for: .audio)
@@ -180,7 +184,7 @@ final class CameraRecorder: NSObject, ObservableObject {
     }
 
     func stopRecording() async -> URL? {
-        if let movieOutput, movieOutput.isRecording {
+        if let movieOutput, movieOutput.isRecording, recordingFinished == nil {
             await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                 recordingFinished = continuation
                 movieOutput.stopRecording()

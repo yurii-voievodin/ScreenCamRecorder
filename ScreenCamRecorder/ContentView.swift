@@ -8,10 +8,13 @@ struct ContentView: View {
     @StateObject private var cameraRecorder = CameraRecorder()
 
     @State private var isRecording = false
+    @State private var isTransitioning = false
     @State private var statusText = "Готово до запису"
     @State private var lastRecordingURL: URL?
     @State private var previewWindowController: CameraPreviewWindowController?
     @State private var currentEdgeInsets = OverlayEdgeInsets.zero
+    @State private var cameraSelectionTask: Task<Void, Never>?
+    @State private var microphoneSelectionTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 14) {
@@ -105,10 +108,12 @@ struct ContentView: View {
         .frame(width: 340)
         .task { await setUp() }
         .onChange(of: settings.selectedCameraID) { newValue in
-            Task { await cameraDidChange(to: newValue) }
+            cameraSelectionTask?.cancel()
+            cameraSelectionTask = Task { await cameraDidChange(to: newValue) }
         }
         .onChange(of: settings.selectedMicrophoneID) { newValue in
-            Task { await cameraRecorder.selectMicrophone(deviceID: newValue) }
+            microphoneSelectionTask?.cancel()
+            microphoneSelectionTask = Task { await cameraRecorder.selectMicrophone(deviceID: newValue) }
         }
         .onChange(of: settings.selectedDisplayID) { _ in showPreviewWindow() }
         .onChange(of: settings.overlayPosition) { _ in showPreviewWindow() }
@@ -150,7 +155,10 @@ struct ContentView: View {
     }
 
     private func toggleRecording() {
+        guard !isTransitioning else { return }
+        isTransitioning = true
         Task {
+            defer { isTransitioning = false }
             if isRecording {
                 statusText = "Обробка та склеювання відео…"
                 let screenURL = await screenRecorder.stop()
