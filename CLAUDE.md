@@ -10,8 +10,11 @@ screen recording — similar in spirit to Screen Studio. UI strings and code com
 
 ## Build / run
 
-The Xcode project is generated from `project.yml` via [XcodeGen](https://github.com/yonaskolb/XcodeGen) —
-regenerate it after adding/removing files or changing build settings:
+The Xcode project is generated from `project.yml` via [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+The `ScreenCamRecorder` target source is declared as `type: syncedFolder`, so it's backed by Xcode 16's
+file system synchronized groups (`PBXFileSystemSynchronizedRootGroup`) — new/moved/deleted Swift files
+under `ScreenCamRecorder/` need no project change at all, in Xcode or in `project.yml`. Regenerate only
+when build settings, targets, or the synced folder's `excludes` list change:
 
 ```bash
 xcodegen generate

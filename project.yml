@@ -12,6 +12,7 @@ targets:
     deploymentTarget: "13.0"
     sources:
       - path: ScreenCamRecorder
+        type: syncedFolder
         excludes:
           - "Info.plist"
           - "ScreenCamRecorder.entitlements"
