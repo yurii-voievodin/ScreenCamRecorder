@@ -27,7 +27,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             return true
         } catch {
             print("Screen recording permission denied: \(error)")
-            lastErrorMessage = "Немає дозволу на запис екрана"
+            lastErrorMessage = String(localized: .screenRecordingPermissionDenied)
             return false
         }
     }
@@ -51,7 +51,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             let selectedDisplay = displayID.flatMap { id in content.displays.first { $0.displayID == id } }
             guard let display = selectedDisplay ?? content.displays.first else {
                 print("No display available for screen capture")
-                lastErrorMessage = "Дисплей недоступний"
+                lastErrorMessage = String(localized: .displayUnavailable)
                 return
             }
 

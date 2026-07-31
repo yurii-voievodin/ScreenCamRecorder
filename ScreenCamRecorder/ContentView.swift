@@ -9,7 +9,7 @@ struct ContentView: View {
 
     @State private var isRecording = false
     @State private var isTransitioning = false
-    @State private var statusText = "Готово до запису"
+    @State private var statusText = String(localized: .readyToRecord)
     @State private var lastRecordingURL: URL?
     @State private var previewWindowController: CameraPreviewWindowController?
     @State private var currentEdgeInsets = OverlayEdgeInsets.zero
@@ -22,29 +22,33 @@ struct ContentView: View {
 
             CardView {
                 VStack(alignment: .leading, spacing: 10) {
-                    SourceRow(icon: "display", help: "Дисплей") {
-                        Picker("Дисплей", selection: $settings.selectedDisplayID) {
+                    SourceRow(icon: "display", help: String(localized: .display)) {
+                        Picker(selection: $settings.selectedDisplayID) {
                             if screenRecorder.availableDisplays.isEmpty {
-                                Text("Немає екрана").tag(CGDirectDisplayID(0))
+                                Text(.noDisplay).tag(CGDirectDisplayID(0))
                             }
                             ForEach(screenRecorder.availableDisplays, id: \.displayID) { display in
                                 Text(displayName(for: display)).tag(display.displayID)
                             }
+                        } label: {
+                            Text(.display)
                         }
                         .disabled(isRecording)
                     }
 
                     Divider()
 
-                    SourceRow(icon: "video.fill", help: "Камера") {
+                    SourceRow(icon: "video.fill", help: String(localized: .camera)) {
                         HStack(spacing: 8) {
-                            Picker("Камера", selection: $settings.selectedCameraID) {
+                            Picker(selection: $settings.selectedCameraID) {
                                 if cameraRecorder.availableCameras.isEmpty {
-                                    Text("Немає камери").tag("")
+                                    Text(.noCamera).tag("")
                                 }
                                 ForEach(cameraRecorder.availableCameras, id: \.uniqueID) { device in
                                     Text(device.localizedName).tag(device.uniqueID)
                                 }
+                            } label: {
+                                Text(.camera)
                             }
                             .disabled(isRecording)
 
@@ -53,19 +57,21 @@ struct ContentView: View {
                             }
                             .toggleStyle(.button)
                             .disabled(isRecording)
-                            .help("Дзеркально відображати камеру")
+                            .help(Text(.mirrorCamera))
                         }
                     }
 
                     Divider()
 
-                    SourceRow(icon: "mic.fill", help: "Мікрофон") {
-                        Picker("Мікрофон", selection: $settings.selectedMicrophoneID) {
-                            Text("Системний мікрофон").tag("")
+                    SourceRow(icon: "mic.fill", help: String(localized: .microphone)) {
+                        Picker(selection: $settings.selectedMicrophoneID) {
+                            Text(.systemMicrophone).tag("")
                             ForEach(cameraRecorder.availableMicrophones, id: \.uniqueID) { device in
                                 Text(device.localizedName).tag(device.uniqueID)
                             }
-                            Text("Без звуку").tag(RecordingSettings.noMicrophoneID)
+                            Text(.noAudio).tag(RecordingSettings.noMicrophoneID)
+                        } label: {
+                            Text(.microphone)
                         }
                         .disabled(isRecording)
                     }
@@ -77,15 +83,17 @@ struct ContentView: View {
                     CornerPositionPicker(selection: $settings.overlayPosition, isEnabled: !isRecording)
 
                     VStack(spacing: 10) {
-                        Picker("Форма", selection: $settings.overlayShape) {
+                        Picker(selection: $settings.overlayShape) {
                             ForEach(OverlayShape.allCases, id: \.self) { shape in
                                 Image(systemName: shape.iconName).tag(shape)
                             }
+                        } label: {
+                            Text(.shape)
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
                         .disabled(isRecording)
-                        .help("Форма накладення камери")
+                        .help(Text(.cameraOverlayShape))
 
                         HStack(spacing: 8) {
                             Image(systemName: "arrow.down.right.and.arrow.up.left")
@@ -104,10 +112,13 @@ struct ContentView: View {
             }
 
             Button(action: toggleRecording) {
-                Label(isRecording ? "Зупинити" : "Почати запис",
-                      systemImage: isRecording ? "stop.circle.fill" : "record.circle")
-                    .font(.title3)
-                    .frame(maxWidth: .infinity)
+                Label {
+                    Text(isRecording ? .stop : .startRecording)
+                } icon: {
+                    Image(systemName: isRecording ? "stop.circle.fill" : "record.circle")
+                }
+                .font(.title3)
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .tint(isRecording ? .red : .accentColor)
@@ -172,7 +183,7 @@ struct ContentView: View {
         Task {
             defer { isTransitioning = false }
             if isRecording {
-                statusText = "Обробка та склеювання відео…"
+                statusText = String(localized: .processingAndMergingVideo)
                 let screenURL = await screenRecorder.stop()
                 let cameraURL = await cameraRecorder.stopRecording()
                 let screenStartTime = screenRecorder.startHostTime
@@ -188,14 +199,14 @@ struct ContentView: View {
                         settings: settings
                     )
                     lastRecordingURL = outputURL
-                    statusText = outputURL != nil ? "Готово! Файл збережено." : "Помилка склеювання."
+                    statusText = outputURL != nil ? String(localized: .doneFileSaved) : String(localized: .mergeFailed)
                 } else {
-                    statusText = "Помилка запису."
+                    statusText = String(localized: .recordingFailed)
                 }
                 isRecording = false
             } else {
                 lastRecordingURL = nil
-                statusText = "Йде запис…"
+                statusText = String(localized: .recording)
                 async let screenStart: () = screenRecorder.start(displayID: settings.selectedDisplayID)
                 async let cameraStart: () = cameraRecorder.startRecording()
                 _ = await (screenStart, cameraStart)
@@ -247,7 +258,7 @@ struct ContentView: View {
         }) {
             return screen.localizedName
         }
-        return "Дисплей \(display.displayID)"
+        return String(localized: .display(Int32(display.displayID)))
     }
 
     private var recordedScreen: NSScreen? {

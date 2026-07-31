@@ -11,6 +11,15 @@
     <key>CFBundleName</key>
     <string>$(PRODUCT_NAME)</string>
 
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>uk</string>
+    </array>
+
     <key>CFBundlePackageType</key>
     <string>APPL</string>
 
@@ -24,15 +33,15 @@
     <string>AppIcon</string>
 
     <key>NSCameraUsageDescription</key>
-    <string>Додатку потрібен доступ до камери, щоб накладати відео з вебкамери на запис екрану.</string>
+    <string>This app needs camera access to overlay your webcam video on the screen recording.</string>
 
     <key>NSMicrophoneUsageDescription</key>
-    <string>Додатку потрібен доступ до мікрофону для запису звуку разом з відео.</string>
+    <string>This app needs microphone access to record audio along with the video.</string>
 
     <!--
-        Дозвіл на запис екрану (Screen Recording) не задається через Info.plist -
-        macOS запитує його автоматично при першому виклику ScreenCaptureKit API,
-        і користувач має явно дозволити це в System Settings → Privacy & Security → Screen Recording.
+        Screen Recording permission isn't set via Info.plist - macOS requests it
+        automatically on the first ScreenCaptureKit API call, and the user must
+        explicitly allow it in System Settings → Privacy & Security → Screen Recording.
     -->
 
     <key>LSMinimumSystemVersion</key>

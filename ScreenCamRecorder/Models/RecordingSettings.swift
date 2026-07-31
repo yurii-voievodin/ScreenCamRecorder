@@ -8,10 +8,10 @@ enum OverlayPosition: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .topLeft: return "Верхній лівий"
-        case .topRight: return "Верхній правий"
-        case .bottomLeft: return "Нижній лівий"
-        case .bottomRight: return "Нижній правий"
+        case .topLeft: return String(localized: .topLeft)
+        case .topRight: return String(localized: .topRight)
+        case .bottomLeft: return String(localized: .bottomLeft)
+        case .bottomRight: return String(localized: .bottomRight)
         }
     }
 }

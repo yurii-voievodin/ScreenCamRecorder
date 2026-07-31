@@ -24,8 +24,12 @@ struct StatusRow: View {
                 Button {
                     NSWorkspace.shared.activateFileViewerSelecting([lastRecordingURL])
                 } label: {
-                    Label("Показати у Finder", systemImage: "folder")
-                        .font(.caption)
+                    Label {
+                        Text(.showInFinder)
+                    } icon: {
+                        Image(systemName: "folder")
+                    }
+                    .font(.caption)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.accentColor)

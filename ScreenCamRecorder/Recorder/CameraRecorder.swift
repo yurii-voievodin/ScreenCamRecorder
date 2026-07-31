@@ -65,7 +65,7 @@ final class CameraRecorder: NSObject, ObservableObject {
     func selectCamera(deviceID: String) async {
         guard await requestPermissionIfNeeded() else {
             print("CameraRecorder: camera permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .video).rawValue))")
-            lastErrorMessage = "Немає дозволу на камеру"
+            lastErrorMessage = String(localized: .cameraPermissionDenied)
             return
         }
         guard !Task.isCancelled else { return }
@@ -77,7 +77,7 @@ final class CameraRecorder: NSObject, ObservableObject {
 
         guard let device = availableCameras.first(where: { $0.uniqueID == deviceID }) ?? availableCameras.first else {
             print("No camera device available")
-            lastErrorMessage = "Камера недоступна"
+            lastErrorMessage = String(localized: .cameraUnavailable)
             return
         }
 
@@ -130,7 +130,7 @@ final class CameraRecorder: NSObject, ObservableObject {
 
         guard await requestMicrophonePermissionIfNeeded() else {
             print("CameraRecorder: microphone permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue))")
-            lastErrorMessage = "Немає дозволу на мікрофон"
+            lastErrorMessage = String(localized: .microphonePermissionDenied)
             return
         }
         guard !Task.isCancelled else { return }
@@ -146,7 +146,7 @@ final class CameraRecorder: NSObject, ObservableObject {
 
         guard let device else {
             print("CameraRecorder: no microphone device available")
-            lastErrorMessage = "Мікрофон недоступний"
+            lastErrorMessage = String(localized: .microphoneUnavailable)
             return
         }
 
