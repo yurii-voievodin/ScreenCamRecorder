@@ -12,9 +12,5 @@
     <true/>
     <key>com.apple.security.assets.movies.read-write</key>
     <true/>
-    <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
-    <array>
-        <string>com.apple.audioanalyticsd</string>
-    </array>
 </dict>
 </plist>
