@@ -14,6 +14,7 @@ enum Compositor {
     static func combine(
         screenURL: URL,
         cameraURL: URL,
+        destinationURL: URL,
         screenStartTime: CFTimeInterval?,
         cameraStartTime: CFTimeInterval?,
         edgeInsets: OverlayEdgeInsets,
@@ -71,16 +72,15 @@ enum Compositor {
         videoComposition.instructions = [instruction]
         videoComposition.customVideoCompositorClass = OverlayCompositor.self
 
-        guard let moviesURL = FileManager.default.urls(for: .moviesDirectory, in: .userDomainMask).first else {
-            throw CompositorError.exportFailed
+        if FileManager.default.fileExists(atPath: destinationURL.path) {
+            try FileManager.default.removeItem(at: destinationURL)
         }
-        let outputURL = moviesURL.appendingPathComponent("ScreenCamRecording-\(Date.now.timeIntervalSince1970).mov")
 
         guard let export = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
             throw CompositorError.exportFailed
         }
         export.videoComposition = videoComposition
-        export.outputURL = outputURL
+        export.outputURL = destinationURL
         export.outputFileType = .mov
 
         await export.export()
@@ -90,7 +90,7 @@ enum Compositor {
             throw CompositorError.exportFailed
         }
 
-        return outputURL
+        return destinationURL
     }
 
     private static func startTrims(

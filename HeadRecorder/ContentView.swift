@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import ScreenCaptureKit
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @StateObject private var settings = RecordingSettings()
@@ -195,16 +196,21 @@ struct ContentView: View {
                 let cameraStartTime = cameraRecorder.startHostTime
 
                 if let screenURL, let cameraURL {
-                    let outputURL = try? await Compositor.combine(
-                        screenURL: screenURL,
-                        cameraURL: cameraURL,
-                        screenStartTime: screenStartTime,
-                        cameraStartTime: cameraStartTime,
-                        edgeInsets: currentEdgeInsets,
-                        settings: settings
-                    )
-                    lastRecordingURL = outputURL
-                    statusText = outputURL != nil ? String(localized: .doneFileSaved) : String(localized: .mergeFailed)
+                    if let destinationURL = chooseDestinationURL() {
+                        let outputURL = try? await Compositor.combine(
+                            screenURL: screenURL,
+                            cameraURL: cameraURL,
+                            destinationURL: destinationURL,
+                            screenStartTime: screenStartTime,
+                            cameraStartTime: cameraStartTime,
+                            edgeInsets: currentEdgeInsets,
+                            settings: settings
+                        )
+                        lastRecordingURL = outputURL
+                        statusText = outputURL != nil ? String(localized: .doneFileSaved) : String(localized: .mergeFailed)
+                    } else {
+                        statusText = String(localized: .saveCancelled)
+                    }
                 } else {
                     statusText = String(localized: .recordingFailed)
                 }
@@ -222,6 +228,18 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    @MainActor
+    private func chooseDestinationURL() -> URL? {
+        let panel = NSSavePanel()
+        panel.title = String(localized: .saveRecording)
+        panel.allowedContentTypes = [.quickTimeMovie]
+        panel.nameFieldStringValue = "ScreenCamRecording-\(Int(Date.now.timeIntervalSince1970))"
+        panel.directoryURL = FileManager.default.urls(for: .moviesDirectory, in: .userDomainMask).first
+        panel.canCreateDirectories = true
+        NSApp.activate(ignoringOtherApps: true)
+        return panel.runModal() == .OK ? panel.url : nil
     }
 
     private func showPreviewWindow() {

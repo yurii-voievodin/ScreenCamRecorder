@@ -375,6 +375,40 @@
         }
       }
     },
+    "Save Recording": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Recording"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зберегти запис"
+          }
+        }
+      }
+    },
+    "Save cancelled.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save cancelled."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збереження скасовано."
+          }
+        }
+      }
+    },
     "Screen recording permission denied": {
       "extractionState": "manual",
       "localizations": {
