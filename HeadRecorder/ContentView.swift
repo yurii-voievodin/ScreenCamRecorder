@@ -19,7 +19,7 @@ struct ContentView: View {
     @State private var microphoneSelectionTask: Task<Void, Never>?
     @State private var exportProgress: Double?
 
-    private let logger = Logger.category(.compositor)
+    private static let logger = Logger.category(.compositor)
 
     var body: some View {
         VStack(spacing: 14) {
@@ -210,7 +210,6 @@ struct ContentView: View {
                         )
                         let compositor = Compositor()
                         do {
-                            var outputURL: URL?
                             for try await event in await compositor.combine(
                                 screenURL: screenURL,
                                 cameraURL: cameraURL,
@@ -222,13 +221,12 @@ struct ContentView: View {
                             ) {
                                 switch event {
                                 case .progress(let value): exportProgress = value
-                                case .finished(let url): outputURL = url
                                 }
                             }
-                            lastRecordingURL = outputURL
+                            lastRecordingURL = destinationURL
                             statusText = String(localized: .doneFileSaved)
                         } catch {
-                            logger.error("Export failed: \(error)")
+                            Self.logger.error("Export failed: \(error)")
                             lastRecordingURL = nil
                             statusText = String(localized: .mergeFailed)
                         }

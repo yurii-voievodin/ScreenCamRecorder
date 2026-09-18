@@ -19,7 +19,6 @@ actor Compositor {
 
     enum ExportEvent: Sendable {
         case progress(Double)
-        case finished(URL)
     }
 
     func combine(
@@ -31,7 +30,7 @@ actor Compositor {
         edgeInsets: OverlayEdgeInsets,
         settings: RenderSettings
     ) -> AsyncThrowingStream<ExportEvent, Error> {
-        AsyncThrowingStream { continuation in
+        AsyncThrowingStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
             let task = Task {
                 do {
                     let screenAsset = AVURLAsset(url: screenURL)
@@ -103,7 +102,6 @@ actor Compositor {
                     }
                     try await exportRun
 
-                    continuation.yield(.finished(destinationURL))
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
