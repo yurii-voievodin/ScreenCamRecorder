@@ -7,6 +7,8 @@ at the same time, then composites the camera into a corner bubble
 (circle or rectangle, optionally mirrored) over the screen recording —
 no separate editing step required.
 
+![Head Recorder](docs/screenshot.png)
+
 ## Features
 
 - Simultaneous screen + webcam + microphone capture
