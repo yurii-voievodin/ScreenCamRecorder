@@ -2,8 +2,11 @@ import Foundation
 import AVFoundation
 import CoreImage
 import CoreImage.CIFilterBuiltins
+import os
 
 enum Compositor {
+
+    private static let logger = Logger.category(.compositor)
 
     enum CompositorError: Error {
         case exportFailed
@@ -85,7 +88,7 @@ enum Compositor {
         await export.export()
 
         guard export.status == .completed else {
-            print("Compositor export failed: \(export.error?.localizedDescription ?? "unknown error")")
+            logger.error("Export failed: \(export.error?.localizedDescription ?? "unknown error")")
             throw CompositorError.exportFailed
         }
 

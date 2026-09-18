@@ -10,26 +10,9 @@
 		DAA3FC7C9A35E8E5A98A3E0B /* HeadRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeadRecorder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		B6F7636943BC2677E33A29C6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				HeadRecorder.entitlements,
-			);
-			target = B661695D6F568E34C7141B7A /* HeadRecorder */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3E047D6FC9B902B7040B28AA /* HeadRecorder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				B6F7636943BC2677E33A29C6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
 			path = HeadRecorder;
 			sourceTree = "<group>";
 		};

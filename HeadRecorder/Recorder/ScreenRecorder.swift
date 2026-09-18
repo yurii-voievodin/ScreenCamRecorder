@@ -1,8 +1,11 @@
 import Foundation
 import ScreenCaptureKit
 import AVFoundation
+import os
 
 final class ScreenRecorder: NSObject, ObservableObject {
+
+    private nonisolated let logger = Logger.category(.screenRecorder)
 
     private var stream: SCStream?
     private var currentDisplay: SCDisplay?
@@ -25,7 +28,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
             return true
         } catch {
-            print("Screen recording permission denied: \(error)")
+            logger.error("Screen recording permission denied: \(error)")
             lastErrorMessage = String(localized: .screenRecordingPermissionDenied)
             return false
         }
@@ -37,7 +40,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
             availableDisplays = content.displays
         } catch {
-            print("Failed to list available displays: \(error)")
+            logger.error("Failed to list available displays: \(error)")
         }
     }
 
@@ -49,7 +52,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             availableDisplays = content.displays
             let selectedDisplay = displayID.flatMap { id in content.displays.first { $0.displayID == id } }
             guard let display = selectedDisplay ?? content.displays.first else {
-                print("No display available for screen capture")
+                logger.error("No display available for screen capture")
                 lastErrorMessage = String(localized: .displayUnavailable)
                 return
             }
@@ -91,7 +94,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
 
             try await stream.startCapture()
         } catch {
-            print("Failed to start screen capture: \(error)")
+            logger.error("Failed to start screen capture: \(error)")
         }
     }
 
@@ -110,13 +113,13 @@ final class ScreenRecorder: NSObject, ObservableObject {
                 }
             }
             guard let matchedWindow else {
-                print("ScreenRecorder: could not find preview window (id=\(windowNumber)) to exclude from capture")
+                logger.warning("Could not find preview window (id=\(windowNumber)) to exclude from capture")
                 return
             }
             let filter = SCContentFilter(display: currentDisplay, excludingWindows: [matchedWindow])
             try await stream.updateContentFilter(filter)
         } catch {
-            print("ScreenRecorder: failed to exclude preview window from capture: \(error)")
+            logger.error("Failed to exclude preview window from capture: \(error)")
         }
     }
 
@@ -125,7 +128,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
             do {
                 try await stream.stopCapture()
             } catch {
-                print("Failed to stop screen capture: \(error)")
+                logger.error("Failed to stop screen capture: \(error)")
             }
         }
         stream = nil
@@ -134,7 +137,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
         videoInput?.markAsFinished()
         await assetWriter?.finishWriting()
         if let writer = assetWriter, writer.status != .completed {
-            print("AVAssetWriter finished with status \(writer.status.rawValue): \(writer.error?.localizedDescription ?? "no error")")
+            logger.error("AVAssetWriter finished with status \(writer.status.rawValue): \(writer.error?.localizedDescription ?? "no error")")
         }
 
         let url = outputURL
@@ -152,7 +155,7 @@ final class ScreenRecorder: NSObject, ObservableObject {
         guard let writer = assetWriter, let input = videoInput else { return }
 
         if writer.status == .failed {
-            print("AVAssetWriter failed: \(writer.error?.localizedDescription ?? "unknown error")")
+            logger.error("AVAssetWriter failed: \(writer.error?.localizedDescription ?? "unknown error")")
             return
         }
         guard writer.status == .writing else { return }
@@ -179,6 +182,6 @@ extension ScreenRecorder: SCStreamOutput {
 
 extension ScreenRecorder: SCStreamDelegate {
     nonisolated func stream(_ stream: SCStream, didStopWithError error: Error) {
-        print("Screen capture stream stopped with error: \(error)")
+        logger.error("Screen capture stream stopped with error: \(error)")
     }
 }

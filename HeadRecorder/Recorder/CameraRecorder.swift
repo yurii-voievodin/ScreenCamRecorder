@@ -1,7 +1,10 @@
 import Foundation
 @preconcurrency import AVFoundation
+import os
 
 final class CameraRecorder: NSObject, ObservableObject {
+
+    private nonisolated let logger = Logger.category(.cameraRecorder)
 
     @Published var availableCameras: [AVCaptureDevice] = []
     @Published var availableMicrophones: [AVCaptureDevice] = []
@@ -75,7 +78,7 @@ final class CameraRecorder: NSObject, ObservableObject {
 
     func selectCamera(deviceID: String) async {
         guard await requestPermissionIfNeeded() else {
-            print("CameraRecorder: camera permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .video).rawValue))")
+            logger.error("Camera permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .video).rawValue))")
             lastErrorMessage = String(localized: .cameraPermissionDenied)
             return
         }
@@ -87,7 +90,7 @@ final class CameraRecorder: NSObject, ObservableObject {
         guard !Task.isCancelled else { return }
 
         guard let device = availableCameras.first(where: { $0.uniqueID == deviceID }) ?? availableCameras.first else {
-            print("No camera device available")
+            logger.error("No camera device available")
             lastErrorMessage = String(localized: .cameraUnavailable)
             return
         }
@@ -104,7 +107,7 @@ final class CameraRecorder: NSObject, ObservableObject {
                     session.addInput(input)
                     currentInput = input
                 } else {
-                    print("CameraRecorder: cannot add input for device \(device.localizedName)")
+                    logger.error("Cannot add input for device \(device.localizedName)")
                 }
                 if movieOutput == nil {
                     let output = AVCaptureMovieFileOutput()
@@ -112,7 +115,7 @@ final class CameraRecorder: NSObject, ObservableObject {
                         session.addOutput(output)
                         movieOutput = output
                     } else {
-                        print("CameraRecorder: cannot add AVCaptureMovieFileOutput to session")
+                        logger.error("Cannot add AVCaptureMovieFileOutput to session")
                     }
                 }
                 session.commitConfiguration()
@@ -120,7 +123,7 @@ final class CameraRecorder: NSObject, ObservableObject {
                 let dimensions = CMVideoFormatDescriptionGetDimensions(device.activeFormat.formatDescription)
                 activeVideoDimensions = CGSize(width: Int(dimensions.width), height: Int(dimensions.height))
             } catch {
-                print("Failed to configure camera input: \(error)")
+                logger.error("Failed to configure camera input: \(error)")
                 return
             }
         }
@@ -140,7 +143,7 @@ final class CameraRecorder: NSObject, ObservableObject {
         }
 
         guard await requestMicrophonePermissionIfNeeded() else {
-            print("CameraRecorder: microphone permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue))")
+            logger.error("Microphone permission not granted (status=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue))")
             lastErrorMessage = String(localized: .microphonePermissionDenied)
             return
         }
@@ -156,7 +159,7 @@ final class CameraRecorder: NSObject, ObservableObject {
             : (availableMicrophones.first(where: { $0.uniqueID == deviceID }) ?? AVCaptureDevice.default(for: .audio))
 
         guard let device else {
-            print("CameraRecorder: no microphone device available")
+            logger.error("No microphone device available")
             lastErrorMessage = String(localized: .microphoneUnavailable)
             return
         }
@@ -173,17 +176,17 @@ final class CameraRecorder: NSObject, ObservableObject {
                 session.addInput(input)
                 audioInput = input
             } else {
-                print("CameraRecorder: cannot add microphone input for device \(device.localizedName)")
+                logger.error("Cannot add microphone input for device \(device.localizedName)")
             }
             session.commitConfiguration()
         } catch {
-            print("CameraRecorder: failed to create microphone input: \(error)")
+            logger.error("Failed to create microphone input: \(error)")
         }
     }
 
     func startRecording() async {
         guard let movieOutput else {
-            print("CameraRecorder: camera not configured, cannot start recording")
+            logger.error("Camera not configured, cannot start recording")
             return
         }
 
@@ -224,7 +227,7 @@ extension CameraRecorder: AVCaptureFileOutputRecordingDelegate {
         error: Error?
     ) {
         if let error {
-            print("Camera recording finished with error: \(error)")
+            logger.error("Camera recording finished with error: \(error)")
         }
         Task { @MainActor in
             recordingFinished?.resume()
