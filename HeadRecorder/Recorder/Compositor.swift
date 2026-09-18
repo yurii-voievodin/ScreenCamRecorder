@@ -1,98 +1,116 @@
 import Foundation
-import AVFoundation
+@preconcurrency import AVFoundation
 import CoreImage
 import CoreImage.CIFilterBuiltins
-import os
 
-enum Compositor {
+actor Compositor {
 
-    private static let logger = Logger.category(.compositor)
-
-    enum CompositorError: Error {
+    enum CompositorError: Error, Sendable {
         case exportFailed
         case noVideoTrack
     }
 
-    static func combine(
+    struct RenderSettings: Sendable {
+        let overlayPosition: OverlayPosition
+        let overlaySize: Double
+        let overlayShape: OverlayShape
+        let isCameraMirrored: Bool
+    }
+
+    enum ExportEvent: Sendable {
+        case progress(Double)
+        case finished(URL)
+    }
+
+    func combine(
         screenURL: URL,
         cameraURL: URL,
         destinationURL: URL,
         screenStartTime: CFTimeInterval?,
         cameraStartTime: CFTimeInterval?,
         edgeInsets: OverlayEdgeInsets,
-        settings: RecordingSettings
-    ) async throws -> URL {
+        settings: RenderSettings
+    ) -> AsyncThrowingStream<ExportEvent, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    let screenAsset = AVURLAsset(url: screenURL)
+                    let cameraAsset = AVURLAsset(url: cameraURL)
 
-        let screenAsset = AVURLAsset(url: screenURL)
-        let cameraAsset = AVURLAsset(url: cameraURL)
+                    guard let screenTrack = try await screenAsset.loadTracks(withMediaType: .video).first,
+                          let cameraTrack = try await cameraAsset.loadTracks(withMediaType: .video).first else {
+                        throw CompositorError.noVideoTrack
+                    }
 
-        guard let screenTrack = try await screenAsset.loadTracks(withMediaType: .video).first,
-              let cameraTrack = try await cameraAsset.loadTracks(withMediaType: .video).first else {
-            throw CompositorError.noVideoTrack
+                    let composition = AVMutableComposition()
+                    guard let compScreenTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
+                          let compCameraTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
+                        throw CompositorError.exportFailed
+                    }
+
+                    let screenDuration = try await screenAsset.load(.duration)
+                    let cameraDuration = try await cameraAsset.load(.duration)
+
+                    let (screenTrim, cameraTrim) = Self.startTrims(screenStartTime: screenStartTime, cameraStartTime: cameraStartTime)
+                    let screenAvailable = max(.zero, screenDuration - screenTrim)
+                    let cameraAvailable = max(.zero, cameraDuration - cameraTrim)
+                    let duration = min(screenAvailable, cameraAvailable)
+                    let range = CMTimeRange(start: .zero, duration: duration)
+
+                    try compScreenTrack.insertTimeRange(CMTimeRange(start: screenTrim, duration: duration), of: screenTrack, at: .zero)
+                    try compCameraTrack.insertTimeRange(CMTimeRange(start: cameraTrim, duration: duration), of: cameraTrack, at: .zero)
+
+                    if let cameraAudioTrack = try await cameraAsset.loadTracks(withMediaType: .audio).first,
+                       let compAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
+                        try compAudioTrack.insertTimeRange(CMTimeRange(start: cameraTrim, duration: duration), of: cameraAudioTrack, at: .zero)
+                    }
+
+                    let renderSize = try await screenTrack.load(.naturalSize)
+
+                    let videoComposition = AVMutableVideoComposition()
+                    videoComposition.renderSize = renderSize
+                    videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
+
+                    let instruction = OverlayInstruction(
+                        timeRange: range,
+                        screenTrackID: compScreenTrack.trackID,
+                        cameraTrackID: compCameraTrack.trackID,
+                        renderSize: renderSize,
+                        position: settings.overlayPosition,
+                        sizeFraction: settings.overlaySize,
+                        shape: settings.overlayShape,
+                        edgeInsets: edgeInsets,
+                        isMirrored: settings.isCameraMirrored
+                    )
+                    videoComposition.instructions = [instruction]
+                    videoComposition.customVideoCompositorClass = OverlayCompositor.self
+
+                    if FileManager.default.fileExists(atPath: destinationURL.path) {
+                        try FileManager.default.removeItem(at: destinationURL)
+                    }
+
+                    guard let export = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
+                        throw CompositorError.exportFailed
+                    }
+                    export.videoComposition = videoComposition
+
+                    let exportStates = export.states(updateInterval: 0.25)
+                    async let exportRun: () = export.export(to: destinationURL, as: .mov)
+                    for await state in exportStates {
+                        if case .exporting(let progress) = state {
+                            continuation.yield(.progress(progress.fractionCompleted))
+                        }
+                    }
+                    try await exportRun
+
+                    continuation.yield(.finished(destinationURL))
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
         }
-
-        let composition = AVMutableComposition()
-        guard let compScreenTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
-              let compCameraTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
-            throw CompositorError.exportFailed
-        }
-
-        let screenDuration = try await screenAsset.load(.duration)
-        let cameraDuration = try await cameraAsset.load(.duration)
-
-        let (screenTrim, cameraTrim) = startTrims(screenStartTime: screenStartTime, cameraStartTime: cameraStartTime)
-        let screenAvailable = max(.zero, screenDuration - screenTrim)
-        let cameraAvailable = max(.zero, cameraDuration - cameraTrim)
-        let duration = min(screenAvailable, cameraAvailable)
-        let range = CMTimeRange(start: .zero, duration: duration)
-
-        try compScreenTrack.insertTimeRange(CMTimeRange(start: screenTrim, duration: duration), of: screenTrack, at: .zero)
-        try compCameraTrack.insertTimeRange(CMTimeRange(start: cameraTrim, duration: duration), of: cameraTrack, at: .zero)
-
-        if let cameraAudioTrack = try await cameraAsset.loadTracks(withMediaType: .audio).first,
-           let compAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
-            try compAudioTrack.insertTimeRange(CMTimeRange(start: cameraTrim, duration: duration), of: cameraAudioTrack, at: .zero)
-        }
-
-        let renderSize = try await screenTrack.load(.naturalSize)
-
-        let videoComposition = AVMutableVideoComposition()
-        videoComposition.renderSize = renderSize
-        videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
-
-        let instruction = OverlayInstruction(
-            timeRange: range,
-            screenTrackID: compScreenTrack.trackID,
-            cameraTrackID: compCameraTrack.trackID,
-            renderSize: renderSize,
-            position: settings.overlayPosition,
-            sizeFraction: settings.overlaySize,
-            shape: settings.overlayShape,
-            edgeInsets: edgeInsets,
-            isMirrored: settings.isCameraMirrored
-        )
-        videoComposition.instructions = [instruction]
-        videoComposition.customVideoCompositorClass = OverlayCompositor.self
-
-        if FileManager.default.fileExists(atPath: destinationURL.path) {
-            try FileManager.default.removeItem(at: destinationURL)
-        }
-
-        guard let export = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
-            throw CompositorError.exportFailed
-        }
-        export.videoComposition = videoComposition
-        export.outputURL = destinationURL
-        export.outputFileType = .mov
-
-        await export.export()
-
-        guard export.status == .completed else {
-            logger.error("Export failed: \(export.error?.localizedDescription ?? "unknown error")")
-            throw CompositorError.exportFailed
-        }
-
-        return destinationURL
     }
 
     private static func startTrims(

@@ -1,6 +1,6 @@
 import CoreGraphics
 
-struct OverlayEdgeInsets {
+struct OverlayEdgeInsets: Sendable {
     var top: CGFloat = 0
     var left: CGFloat = 0
     var bottom: CGFloat = 0

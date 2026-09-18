@@ -7,9 +7,9 @@ extension Logger {
         case compositor = "Compositor"
     }
 
-    private static let subsystem = "com.yuriivoevodin.HeadRecorder"
+    private nonisolated static let subsystem = "com.yuriivoevodin.HeadRecorder"
 
-    static func category(_ category: Category) -> Logger {
+    nonisolated static func category(_ category: Category) -> Logger {
         Logger(subsystem: subsystem, category: category.rawValue)
     }
 }

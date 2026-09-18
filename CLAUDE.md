@@ -2,10 +2,11 @@
 
 ## Project
 
-macOS SwiftUI app (deployment target 13.0) that records screen + webcam
-simultaneously, then composites the camera into a corner bubble (circle/
-rectangle, optionally mirrored) over the screen recording. UI strings and
-code comments are in Ukrainian.
+macOS SwiftUI app (deployment target 15.0, Swift 6 language mode with
+strict concurrency) that records screen + webcam simultaneously, then
+composites the camera into a corner bubble (circle/rectangle, optionally
+mirrored) over the screen recording. UI strings and code comments are in
+Ukrainian.
 
 ## Build / run
 
@@ -36,6 +37,9 @@ recordings.
 
 Screen Recording permission isn't declared in `Info.plist` — macOS prompts
 for it automatically at runtime via ScreenCaptureKit.
+
+The export step (`Compositor`, an `actor`) runs off the main actor and
+reports progress back to the UI via an `AsyncThrowingStream`.
 
 ## Entitlements
 

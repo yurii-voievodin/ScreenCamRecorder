@@ -1,6 +1,6 @@
 import Foundation
-import ScreenCaptureKit
-import AVFoundation
+@preconcurrency import ScreenCaptureKit
+@preconcurrency import AVFoundation
 import os
 
 final class ScreenRecorder: NSObject, ObservableObject {

@@ -1,7 +1,7 @@
 import Foundation
 import CoreGraphics
 
-enum OverlayPosition: String, CaseIterable, Identifiable {
+enum OverlayPosition: String, CaseIterable, Identifiable, Sendable {
     case topLeft, topRight, bottomLeft, bottomRight
 
     var id: String { rawValue }
@@ -16,7 +16,7 @@ enum OverlayPosition: String, CaseIterable, Identifiable {
     }
 }
 
-enum OverlayShape: String, CaseIterable {
+enum OverlayShape: String, CaseIterable, Sendable {
     case circle
     case rectangle
 

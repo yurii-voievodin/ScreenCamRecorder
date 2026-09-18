@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 import ScreenCaptureKit
 import UniformTypeIdentifiers
+import os
 
 struct ContentView: View {
     @StateObject private var settings = RecordingSettings()
@@ -16,10 +17,13 @@ struct ContentView: View {
     @State private var currentEdgeInsets = OverlayEdgeInsets.zero
     @State private var cameraSelectionTask: Task<Void, Never>?
     @State private var microphoneSelectionTask: Task<Void, Never>?
+    @State private var exportProgress: Double?
+
+    private let logger = Logger.category(.compositor)
 
     var body: some View {
         VStack(spacing: 14) {
-            StatusRow(isRecording: isRecording, statusText: statusText, lastRecordingURL: lastRecordingURL)
+            StatusRow(isRecording: isRecording, statusText: statusText, lastRecordingURL: lastRecordingURL, exportProgress: exportProgress)
 
             CardView {
                 VStack(alignment: .leading, spacing: 10) {
@@ -133,23 +137,23 @@ struct ContentView: View {
         .padding(18)
         .frame(width: 340)
         .task { await setUp() }
-        .onChange(of: settings.selectedCameraID) { newValue in
+        .onChange(of: settings.selectedCameraID) { _, newValue in
             cameraSelectionTask?.cancel()
             cameraSelectionTask = Task { await cameraDidChange(to: newValue) }
         }
-        .onChange(of: settings.selectedMicrophoneID) { newValue in
+        .onChange(of: settings.selectedMicrophoneID) { _, newValue in
             microphoneSelectionTask?.cancel()
             microphoneSelectionTask = Task { await cameraRecorder.selectMicrophone(deviceID: newValue) }
         }
-        .onChange(of: settings.selectedDisplayID) { _ in showPreviewWindow() }
-        .onChange(of: settings.overlayPosition) { _ in showPreviewWindow() }
-        .onChange(of: settings.overlaySize) { _ in showPreviewWindow() }
-        .onChange(of: settings.overlayShape) { _ in showPreviewWindow() }
-        .onChange(of: settings.isCameraMirrored) { _ in showPreviewWindow() }
-        .onChange(of: cameraRecorder.lastErrorMessage) { message in
+        .onChange(of: settings.selectedDisplayID) { showPreviewWindow() }
+        .onChange(of: settings.overlayPosition) { showPreviewWindow() }
+        .onChange(of: settings.overlaySize) { showPreviewWindow() }
+        .onChange(of: settings.overlayShape) { showPreviewWindow() }
+        .onChange(of: settings.isCameraMirrored) { showPreviewWindow() }
+        .onChange(of: cameraRecorder.lastErrorMessage) { _, message in
             if let message { statusText = message }
         }
-        .onChange(of: screenRecorder.lastErrorMessage) { message in
+        .onChange(of: screenRecorder.lastErrorMessage) { _, message in
             if let message { statusText = message }
         }
     }
@@ -197,17 +201,38 @@ struct ContentView: View {
 
                 if let screenURL, let cameraURL {
                     if let destinationURL = chooseDestinationURL() {
-                        let outputURL = try? await Compositor.combine(
-                            screenURL: screenURL,
-                            cameraURL: cameraURL,
-                            destinationURL: destinationURL,
-                            screenStartTime: screenStartTime,
-                            cameraStartTime: cameraStartTime,
-                            edgeInsets: currentEdgeInsets,
-                            settings: settings
+                        exportProgress = 0
+                        let renderSettings = Compositor.RenderSettings(
+                            overlayPosition: settings.overlayPosition,
+                            overlaySize: settings.overlaySize,
+                            overlayShape: settings.overlayShape,
+                            isCameraMirrored: settings.isCameraMirrored
                         )
-                        lastRecordingURL = outputURL
-                        statusText = outputURL != nil ? String(localized: .doneFileSaved) : String(localized: .mergeFailed)
+                        let compositor = Compositor()
+                        do {
+                            var outputURL: URL?
+                            for try await event in await compositor.combine(
+                                screenURL: screenURL,
+                                cameraURL: cameraURL,
+                                destinationURL: destinationURL,
+                                screenStartTime: screenStartTime,
+                                cameraStartTime: cameraStartTime,
+                                edgeInsets: currentEdgeInsets,
+                                settings: renderSettings
+                            ) {
+                                switch event {
+                                case .progress(let value): exportProgress = value
+                                case .finished(let url): outputURL = url
+                                }
+                            }
+                            lastRecordingURL = outputURL
+                            statusText = String(localized: .doneFileSaved)
+                        } catch {
+                            logger.error("Export failed: \(error)")
+                            lastRecordingURL = nil
+                            statusText = String(localized: .mergeFailed)
+                        }
+                        exportProgress = nil
                     } else {
                         statusText = String(localized: .saveCancelled)
                     }
@@ -289,8 +314,4 @@ struct ContentView: View {
             (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID) == targetDisplayID
         } ?? NSScreen.main
     }
-}
-
-#Preview {
-    ContentView()
 }
