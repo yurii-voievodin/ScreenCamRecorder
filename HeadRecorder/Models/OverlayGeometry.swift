@@ -9,7 +9,7 @@ struct OverlayEdgeInsets {
     static let zero = OverlayEdgeInsets()
 }
 
-enum OverlayGeometry {
+nonisolated enum OverlayGeometry {
     static let margin: CGFloat = 24
     static let rectangleCornerRadiusFraction: CGFloat = 0.16
 

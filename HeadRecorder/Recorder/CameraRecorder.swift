@@ -1,7 +1,6 @@
 import Foundation
 @preconcurrency import AVFoundation
 
-@MainActor
 final class CameraRecorder: NSObject, ObservableObject {
 
     @Published var availableCameras: [AVCaptureDevice] = []

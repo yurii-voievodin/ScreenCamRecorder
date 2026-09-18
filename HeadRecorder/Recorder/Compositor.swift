@@ -10,7 +10,6 @@ enum Compositor {
         case noVideoTrack
     }
 
-    @MainActor
     static func combine(
         screenURL: URL,
         cameraURL: URL,
@@ -109,7 +108,7 @@ enum Compositor {
     }
 }
 
-private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionProtocol, @unchecked Sendable {
+nonisolated private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionProtocol, @unchecked Sendable {
     let timeRange: CMTimeRange
     let enablePostProcessing = false
     let containsTweening = true
@@ -150,7 +149,7 @@ private final class OverlayInstruction: NSObject, AVVideoCompositionInstructionP
     }
 }
 
-private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
+nonisolated private final class OverlayCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
 
     let sourcePixelBufferAttributes: [String: any Sendable]? = [
         kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)

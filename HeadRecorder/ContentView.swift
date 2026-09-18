@@ -230,7 +230,6 @@ struct ContentView: View {
         }
     }
 
-    @MainActor
     private func chooseDestinationURL() -> URL? {
         let panel = NSSavePanel()
         panel.title = String(localized: .saveRecording)

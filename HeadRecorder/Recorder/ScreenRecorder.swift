@@ -2,7 +2,6 @@ import Foundation
 import ScreenCaptureKit
 import AVFoundation
 
-@MainActor
 final class ScreenRecorder: NSObject, ObservableObject {
 
     private var stream: SCStream?

@@ -221,6 +221,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.yuriivoevodin.HeadRecorder;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -252,6 +253,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.yuriivoevodin.HeadRecorder;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;

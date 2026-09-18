@@ -1,7 +1,6 @@
 import AppKit
 import AVFoundation
 
-@MainActor
 final class CameraPreviewWindowController: NSWindowController {
 
     private let previewLayer: AVCaptureVideoPreviewLayer

@@ -28,7 +28,6 @@ enum OverlayShape: String, CaseIterable {
     }
 }
 
-@MainActor
 final class RecordingSettings: ObservableObject {
     static let noMicrophoneID = "none"
 
