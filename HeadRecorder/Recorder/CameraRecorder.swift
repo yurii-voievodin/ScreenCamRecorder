@@ -32,16 +32,8 @@ final class CameraRecorder: NSObject, ObservableObject {
     }
 
     func refreshAvailableMicrophones() async {
-        // .microphone requires macOS 14+; deployment target is 13.0, so fall back to
-        // the older .builtInMicrophone type (deprecated in 14, but that's fine pre-14).
-        let deviceTypes: [AVCaptureDevice.DeviceType]
-        if #available(macOS 14.0, *) {
-            deviceTypes = [.microphone]
-        } else {
-            deviceTypes = [.builtInMicrophone]
-        }
         let discovery = AVCaptureDevice.DiscoverySession(
-            deviceTypes: deviceTypes,
+            deviceTypes: [.microphone],
             mediaType: .audio,
             position: .unspecified
         )

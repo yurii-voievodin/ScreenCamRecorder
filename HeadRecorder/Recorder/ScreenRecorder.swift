@@ -171,6 +171,8 @@ final class ScreenRecorder: NSObject, ObservableObject {
     }
 }
 
+extension CMSampleBuffer: @unchecked @retroactive Sendable {}
+
 extension ScreenRecorder: SCStreamOutput {
     nonisolated func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .screen, sampleBuffer.isValid else { return }
