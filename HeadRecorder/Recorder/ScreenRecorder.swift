@@ -81,13 +81,13 @@ final class ScreenRecorder: NSObject, ObservableObject {
 
             writer.startWriting()
 
-            self.outputURL = url
-            self.assetWriter = writer
-            self.videoInput = input
-            self.sessionStarted = false
-            self.startHostTime = nil
+            outputURL = url
+            assetWriter = writer
+            videoInput = input
+            sessionStarted = false
+            startHostTime = nil
             self.stream = stream
-            self.currentDisplay = display
+            currentDisplay = display
 
             try await stream.startCapture()
         } catch {
@@ -172,7 +172,7 @@ extension ScreenRecorder: SCStreamOutput {
     nonisolated func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .screen, sampleBuffer.isValid else { return }
         Task { @MainActor in
-            self.handle(sampleBuffer)
+            handle(sampleBuffer)
         }
     }
 }

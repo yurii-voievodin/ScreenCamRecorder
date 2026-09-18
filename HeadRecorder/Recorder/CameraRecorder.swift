@@ -213,7 +213,7 @@ extension CameraRecorder: AVCaptureFileOutputRecordingDelegate {
         from connections: [AVCaptureConnection]
     ) {
         Task { @MainActor in
-            self.startHostTime = ProcessInfo.processInfo.systemUptime
+            startHostTime = ProcessInfo.processInfo.systemUptime
         }
     }
 
